@@ -8,6 +8,29 @@ App({
         var logs = wx.getStorageSync('logs') || [];
         logs.unshift(Date.now());
         wx.setStorageSync('logs', logs);
+        wx.login({
+          success:function(r){
+            var code = r.code;
+            if(code){
+              wx.getUserInfo({
+                success:function(res){
+                  var msg = { 'encryptedData': res.encryptedData, 'iv': res.iv, 'code': code };
+                  msg = JSON.stringify(msg);
+                  wx.connectSocket({
+                    url: 'wss://luozhiming.club',
+                    success:function(res){   
+                      wx.onSocketOpen(function(){
+                        wx.sendSocketMessage({
+                          data: msg,
+                        })
+                      })
+                    }
+                  })
+                }
+              })
+            }
+          }
+        })
     },
     onShow: function () {
         //todo
