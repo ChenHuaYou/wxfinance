@@ -6,6 +6,11 @@ import tornado.autoreload
 from tornado.httpserver import HTTPServer
 import json
 from queue import Queue
+from urllib.request import urlopen
+from Crypto.Cipher import AES
+from binascii import b2a_hex, a2b_hex
+from base64 import b64decode
+import re
 
 qlogin = Queue()
 qBuy = Queue()
@@ -13,8 +18,26 @@ qBuy = Queue()
 '''
 '''
 def unionId(m):
-    print(m)
-    pass
+    wxspAppid = "wxe42429b73e0dc401"
+    wxspSecret = "597083cbe2f0852aad632ed24186a1b8"
+    code = m["code"]
+    iv = b64decode(m["iv"])
+    encryptedData = b64decode(m["encryptedData"]) 
+    grant_type = "authorization_code"
+    params = "appid=" + wxspAppid + "&secret=" + wxspSecret + "&js_code=" + code + "&grant_type=" + grant_type
+    url = "https://api.weixin.qq.com/sns/jscode2session?" + params
+    sr = urlopen(url).read()
+    sr = json.loads(str(sr,"utf-8"))
+    session_key = b64decode(sr["session_key"])
+    openid = sr["openid"]
+    aes = AES.new(session_key, AES.MODE_CBC, iv)
+    r = str(aes.decrypt(encryptedData),"utf-8")
+    r = re.match("{.+}",r).group()
+    f = open('tst','w')
+    print(r,file=f)
+    r = json.loads(r)
+    unionId = r["unionId"]
+    return unionId
 
 
 '''

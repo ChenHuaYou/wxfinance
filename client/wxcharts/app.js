@@ -15,6 +15,7 @@ App({
               wx.getUserInfo({
                 success:function(res){
                   var msg = { 'encryptedData': res.encryptedData, 'iv': res.iv, 'code': code };
+                  console.log(msg.iv);
                   msg = JSON.stringify(msg);
                   wx.connectSocket({
                     url: 'wss://luozhiming.club',
