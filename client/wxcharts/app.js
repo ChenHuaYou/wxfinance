@@ -1,6 +1,7 @@
 /**
  * Created by ChenChao on 2017/1/12.
  */
+var libs = require("./utils/libs.js")
 
 App({
     onLaunch: function () {
@@ -8,30 +9,7 @@ App({
         var logs = wx.getStorageSync('logs') || [];
         logs.unshift(Date.now());
         wx.setStorageSync('logs', logs);
-        wx.login({
-          success:function(r){
-            var code = r.code;
-            if(code){
-              wx.getUserInfo({
-                success:function(res){
-                  var msg = { 'encryptedData': res.encryptedData, 'iv': res.iv, 'code': code };
-                  console.log(msg.iv);
-                  msg = JSON.stringify(msg);
-                  wx.connectSocket({
-                    url: 'wss://luozhiming.club',
-                    success:function(res){   
-                      wx.onSocketOpen(function(){
-                        wx.sendSocketMessage({
-                          data: msg,
-                        })
-                      })
-                    }
-                  })
-                }
-              })
-            }
-          }
-        })
+        libs.user_login();
     },
     onShow: function () {
         //todo
