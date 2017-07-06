@@ -48,11 +48,12 @@ def registered(uID):
 #@返回客户对应的服务页面
 def load_service(uID):
     print("load service")
-    pass
+    client[uID].write_message("1")
  
 #@返回注册页面
-def load_options():
+def load_options(uID):
     print("load register page")
+    client[uID].write_message("0")
     pass
 
 #@云端跟微信端会话
@@ -67,7 +68,7 @@ class cloud_and_client(tornado.websocket.WebSocketHandler):
         if registered(uID):
             load_service(uID)
         else:
-            load_options()
+            load_options(uID)
 
     def on_close(self):
         print("{id} is closed".format(id = id(self)))

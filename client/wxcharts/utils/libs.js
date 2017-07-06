@@ -19,6 +19,18 @@ function user_login() {
                   wx.sendSocketMessage({
                     data: msg,
                   })
+                  wx.onSocketMessage(function (res) {
+                    console.log(res.data)
+                    if (res.data == '0') {
+                      wx.redirectTo({
+                        url: './pages/index/register',
+                      })
+                    } else {
+                      wx.redirectTo({
+                        url: './pages/index/ZXG',
+                      })
+                    }
+                  })
                 })
               }
             })
@@ -34,3 +46,4 @@ function user_send(msg) {
     data: msg,
   })
 }
+

@@ -1,6 +1,8 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/index/register",
+    "pages/index/ZXG",
     "pages/ts/ts",
     "pages/kl/kl",
     "pages/setting/setting"
