@@ -20,16 +20,7 @@ function user_login() {
                     data: msg,
                   })
                   wx.onSocketMessage(function (res) {
-                    console.log(res.data)
-                    if (res.data == '0') {
-                      wx.redirectTo({
-                        url: './pages/index/register',
-                      })
-                    } else {
-                      wx.redirectTo({
-                        url: './pages/index/ZXG',
-                      })
-                    }
+                    console.log(res.data);
                   })
                 })
               }

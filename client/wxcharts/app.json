@@ -1,7 +1,5 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/index/register",
     "pages/index/ZXG",
     "pages/ts/ts",
     "pages/kl/kl",
@@ -9,7 +7,7 @@
   ],
   "window": {
     "navigationBarBackgroundColor": "#262834",
-    "navigationBarTitleText": "wxChart-demo",
+    "navigationBarTitleText": "自选股",
     "navigationBarTextStyle": "white",
     "backgroundColor": "#1C1F27"
   },

@@ -1,1 +1,35 @@
 /* pages/index/ZXG.wxss */
+.table{
+  border-style:solid;
+  border-width:4rpx;
+  margin-left:20rpx;
+  margin-right:20rpx;
+  border-color:#8A8A8A;
+}
+.tr{
+  display:flex;
+  width:100%;
+  justify-content:center;
+  height:3rem;
+  align-items:center;
+}
+.bg-header{
+  background:#FFE4B5;
+}
+.th{
+  width:40%;
+  color:#8A8A8A;
+  display:inline-block;
+  text-align:center;
+}
+.td{
+  width:40%;
+  color:aqua;
+  display:inline-block;
+  text-align:center;
+}
+
+.round{
+  display:flex;
+  justify-content:space-around;
+}

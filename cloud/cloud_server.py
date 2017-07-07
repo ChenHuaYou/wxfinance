@@ -48,12 +48,14 @@ def registered(uID):
 #@返回客户对应的服务页面
 def load_service(uID):
     print("load service")
-    client[uID].write_message("1")
+    pass
  
 #@返回注册页面
 def load_options(uID):
     print("load register page")
-    client[uID].write_message("0")
+    i = 0
+    while True:
+        print(uID)
     pass
 
 #@云端跟微信端会话
