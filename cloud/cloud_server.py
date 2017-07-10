@@ -17,11 +17,13 @@ qlogin = Queue()
 qBuy = Queue()
 conn = pymongo.MongoClient()
 db = conn.cloud_client
-client = dict()
+user = dict()
 
 
-#@获取客户的unionId
 def unionId(m):
+    '''
+    @获取客户的unionId
+    '''
     wxspAppid = "wxe42429b73e0dc401"
     wxspSecret = "597083cbe2f0852aad632ed24186a1b8"
     code = m["code"]
@@ -41,53 +43,38 @@ def unionId(m):
     unionId = r["unionId"]
     return unionId
 
-#@判断客户是否注册了
-def registered(uID):
-    return True if db.user.find({"unionId":uID}).count() > 0 else False
+class cloud_route(tornado.websocket.WebSocketHandler):
+    """
+    @云端作为信息路由
+    @信息格式:{"from_id":发送端id,"from_group":发送端组,"to_id":接收端id,"to_group":接受端组,"msg":信息}
+    @组可以分为: client, server 
+    @client由unionId区分
+    @server由1,2,3,...区分
+    @目前规定:1发送数据,2接受请求
+    """
 
-#@返回客户对应的服务页面
-def load_service(uID):
-    print("load service")
-    pass
- 
-#@返回注册页面
-def load_options(uID):
-    print("load register page")
-    i = 0
-    while True:
-        print(uID)
-    pass
-
-#@云端跟微信端会话
-class cloud_and_client(tornado.websocket.WebSocketHandler):
-    def open(self):
-        pass
-
-    def on_message(self,message):
-        message = json.loads(message)
-        uID = unionId(message)
-        client.update({uID:self})
-        if registered(uID):
-            load_service(uID)
+    def route(self,data):
+        if data["to_id"] == 0:
+            self.login(data)
         else:
-            load_options(uID)
+            user[data["to_id"]].write_message(data["msg"])
 
-    def on_close(self):
-        print("{id} is closed".format(id = id(self)))
-
-    def check_origin(self,origin):
-        return True
-
-'''
-@云端跟本地服务端会话
-'''
-class cloud_and_local(tornado.websocket.WebSocketHandler):
+    def login(self,data):
+        if data["from_id"] == "None":
+            unionID = unionId(data["msg"]) 
+            user.update({unionID:self})
+            req =  
+            user[2].write_message(unionID)
+        else:
+            user.update({data["from_id"]:self})
+   
     def open(self):
-        print("local is connected!")
         pass
 
-    def on_message(self,message):
-        pass
+    def on_message(self,data):
+        data = json.loads(data)
+        self.route(data)
+        print(user)
 
     def on_close(self):
         print("{id} is closed".format(id = id(self)))
@@ -100,8 +87,7 @@ class cloud_and_local(tornado.websocket.WebSocketHandler):
 def main():
     print("tornado start.")
     app = tornado.web.Application([
-        (r'/',cloud_and_client),
-        (r'/cloud_and_local',cloud_and_local),
+        (r'/',cloud_route),
         ])
     server = HTTPServer(app,ssl_options={"certfile":"1_luozhiming.club_bundle.crt","keyfile":"2_luozhiming.club.key"})
     server.listen(443)

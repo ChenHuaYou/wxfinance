@@ -3,7 +3,7 @@ module.exports = {
   user_send: user_send
 }
 
-function user_login() {
+function login_cloud() {
   wx.login({
     success: function (r) {
       var code = r.code;
@@ -11,13 +11,12 @@ function user_login() {
         wx.getUserInfo({
           success: function (res) {
             var msg = { 'encryptedData': res.encryptedData, 'iv': res.iv, 'code': code };
-            msg = JSON.stringify(msg);
             wx.connectSocket({
               url: 'wss://luozhiming.club',
               success: function (res) {
                 wx.onSocketOpen(function () {
                   wx.sendSocketMessage({
-                    data: msg,
+                    data: JSON.stringify({"from_id":"None","from_group":"client","to_id":0,"to_group":"server","msg":msg}),
                   })
                   wx.onSocketMessage(function (res) {
                     console.log(res.data);
