@@ -4,14 +4,22 @@ import websocket
 import time
 import json
 from multiprocessing import Pool
+import builtins
+import pymongo 
+
+conn = pymongo.MongoClient()
+db = conn.server
 
 
 
 def send_on_message(ws, message):
     pass
 
-def recv_on_message(ws, message):
-    recv_loop()
+def recv_on_message(ws, req):
+    global db
+    print(req)
+    exec(req)
+
 
 def on_error(ws, error):
     print(error)
@@ -21,26 +29,25 @@ def on_close(ws):
 
 
 def send_on_open(ws):
-    print("### opened ###")
+    print("### send opened ###")
     data = {"from_id":1,"from_group":"server","to_id":0,"to_group":
     "server","msg":""}
     ws.send(json.dumps(data))
     send_loop()
 
 def recv_on_open(ws):
-    print("### opened ###")
+    print("### recv opened ###")
     data = {"from_id":2,"from_group":"server","to_id":0,"to_group":
     "server","msg":""}
     ws.send(json.dumps(data))
 
 def send_loop():
-    while True:
-        print("sending ...")
-def recv_loop():
-    while True:
-        print("recving ...")
+    with Pool(4) as p:
+        p.async_apply(send_market,(,))
+    p.close()
+    p.join()        
 
-
+def send
 
 
 def send():

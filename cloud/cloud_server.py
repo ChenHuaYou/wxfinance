@@ -63,10 +63,10 @@ class cloud_route(tornado.websocket.WebSocketHandler):
         if data["from_id"] == "None":
             unionID = unionId(data["msg"]) 
             user.update({unionID:self})
-            req =  
-            user[2].write_message(unionID)
+            self.write_message(unionID)
         else:
             user.update({data["from_id"]:self})
+        print(user)
    
     def open(self):
         pass
@@ -74,7 +74,6 @@ class cloud_route(tornado.websocket.WebSocketHandler):
     def on_message(self,data):
         data = json.loads(data)
         self.route(data)
-        print(user)
 
     def on_close(self):
         print("{id} is closed".format(id = id(self)))

@@ -6,7 +6,6 @@ var app = getApp();
 var storage = require('../../utils/storage');
 var ts = require('../../utils/wxChart/time-sharing');
 var axisShow = require('../../utils/wxChart/axis-show');
-var libs = require('../../utils/libs')
 var ts1, ts2;     //分时
 var tsd51, tsd52; //五日
 var tsAxisShow;   //分时手势坐标
