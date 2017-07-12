@@ -10,11 +10,10 @@ App({
     var logs = wx.getStorageSync('logs') || [];
     logs.unshift(Date.now());
     wx.setStorageSync('logs', logs);
-    this.user_login();
-    console.log(wx.getStorageSync("unionId"));
   },
   onShow: function () {
-
+    this.user_login();
+    console.log("fuck me ~~~~~")
     //todo
   },
   onHide: function () {
@@ -33,16 +32,21 @@ App({
                 success: function (res) {
                   wx.onSocketOpen(function () {
                     wx.sendSocketMessage({
-                      data: JSON.stringify({ "from_id": "None", "from_group": "client", "to_id": 0, "to_group": "server", "msg": msg }),
+                      data: JSON.stringify({ "from_id": "None", "from_group": "client", "to_id": 0, "to_group": "server", "msg": msg, "func": "user_login" }),
                     })
                     wx.onSocketMessage(function (res) {
-                      var unionId = res.data
-                      wx.setStorageSync('unionId', unionId);
-                      var req = ("db.user.update({'unionId':'{unionId1}'}," +
-                        "{'$setOnInsert':{'unionId':'{unionId2}'},'$addToSet':{'zxg':{'$each':['000001','399006']}}},upsert=True)").format({ "unionId1": unionId, "unionId2": unionId });
-                      wx.sendSocketMessage({
-                        data: JSON.stringify({ "from_id": unionId, "from_group": "client", "to_id": 2, "to_group": "server", "msg": req }),
-                      })
+                      var data = JSON.parse(res.data)
+                      console.log(data);
+                      if (data["from_id"] == 0 && data["func"] == "login") {
+                        var unionId = data["msg"];
+                        getApp().globalData.unionId = unionId;
+                        console.log(unionId);
+                        var req = ("db.user.update({'unionId':'{unionId1}'}," +
+                          "{'$setOnInsert':{'unionId':'{unionId2}'},'$addToSet':{'zxg':{'$each':['000001','399006']}}},upsert=True)").format({ "unionId1": unionId, "unionId2": unionId });
+                        wx.sendSocketMessage({
+                          data: JSON.stringify({ "from_id": unionId, "from_group": "client", "to_id": 2, "to_group": "server", "msg": req }),
+                        })
+                      }
                     })
                   })
                 }
@@ -54,6 +58,7 @@ App({
     })
   },
   globalData: {
-    unionID: "",
+    unionId: "",
+    market: {}
   }
 });
