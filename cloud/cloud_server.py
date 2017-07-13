@@ -4,6 +4,7 @@ import tornado.web
 import tornado.websocket
 import tornado.autoreload
 from tornado.httpserver import HTTPServer
+from tornado.options import options, define
 import json
 from queue import Queue
 from urllib.request import urlopen
@@ -12,12 +13,10 @@ from binascii import b2a_hex, a2b_hex
 from base64 import b64decode
 import re
 import pymongo
+import traceback
 
-qlogin = Queue()
-qBuy = Queue()
-conn = pymongo.MongoClient()
-db = conn.cloud_client
 user = dict()
+define("port",default=443,help="跑在443",type=int)
 
 
 def unionId(m):
@@ -57,17 +56,25 @@ class cloud_route(tornado.websocket.WebSocketHandler):
         if data["to_id"] == 0:
             self.login(data)
         else:
-            user[data["to_id"]].write_message(data["msg"])
+            try:
+                print(data)
+                user[data["to_id"]].write_message(data)
+            except:
+                traceback.print_exc()
 
     def login(self,data):
-        if data["from_id"] == "None":
-            unionID = unionId(data["msg"]) 
-            user.update({unionID:self})
-            self.write_message(unionID)
-        else:
-            user.update({data["from_id"]:self})
-        print(user)
-   
+        try:
+            if data["from_id"] == "None":
+                unionID = unionId(data["msg"]) 
+                user.update({unionID:self})
+                data = {"from_id":0,"from_group":"server","to_id":unionID,"to_group":"client","msg":unionID,"func":"login"}
+                self.write_message(json.dumps(data))
+            else:
+                user.update({data["from_id"]:self})
+            print(user)
+        except:
+            traceback.print_exc()
+
     def open(self):
         pass
 
@@ -76,23 +83,23 @@ class cloud_route(tornado.websocket.WebSocketHandler):
         self.route(data)
 
     def on_close(self):
-        print("{id} is closed".format(id = id(self)))
+        print("{id} is closed".format(id = {v:k for k,v in user.items()}[self]))
 
     def check_origin(self,origin):
         return True
-
 
 
 def main():
     print("tornado start.")
     app = tornado.web.Application([
         (r'/',cloud_route),
-        ])
+        ],
+        debug = False)
     server = HTTPServer(app,ssl_options={"certfile":"1_luozhiming.club_bundle.crt","keyfile":"2_luozhiming.club.key"})
-    server.listen(443)
-    instance = tornado.ioloop.IOLoop.instance()
-    tornado.autoreload.start(instance)
-    instance.start()
+    server.bind(options.port)
+    server.start(0)
+    tornado.ioloop.IOLoop.instance().start()
+  
 
 if __name__ == "__main__":
     main()

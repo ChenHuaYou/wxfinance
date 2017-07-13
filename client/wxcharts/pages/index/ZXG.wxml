@@ -5,7 +5,7 @@
     <view class="th">股价</view>
     <view class="th">涨跌幅</view>
   </view>
-  <block wx:for="{{listData}}">
+  <block wx:for="{{market}}">
     <scroll-view scroll-y="true" style="height:500px;" bindscrolltolower="upper" bindscrolltolower="lower" bindscroll="scroll" scroll-into-view="{{toView}}" scroll-top="{{scrollTop}}">
       <view class="tr bg-item">
         <view class="td">{{item.code}}</view>
