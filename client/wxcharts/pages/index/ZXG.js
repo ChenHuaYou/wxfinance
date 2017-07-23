@@ -18,14 +18,14 @@ Page({
    */
   onLoad: function (options) {
 
-    console.log("fuck you !!!!!!!!!!!!!!!!!!")
+    console.log("fuck you !!!!!!!!!!!!!!!!!!");
   },
 
   /**
    * 生命周期函数--监听页面初次渲染完成
    */
   onReady: function () {
-    this.interval = setInterval(this.fresh_market, 1000);
+    //this.interval = setInterval(this.fresh_market, 1000);
   },
   fresh_market: function () {
     var that = this;
@@ -35,9 +35,9 @@ Page({
     for (var code in gmarket) {
       var name = gmarket[code][0];
       var price = gmarket[code][3];
-      var pct_chg = 100*(gmarket[code][3] - gmarket[code][2])/gmarket[code][2];
-      pct_chg = pct_chg.toFixed(2); 
-      market.push({"code":code,"name":name,"price":price,"pct_chg":pct_chg}); 
+      var pct_chg = 100 * (gmarket[code][3] - gmarket[code][2]) / gmarket[code][2];
+      pct_chg = pct_chg.toFixed(2);
+      market.push({ "code": code, "name": name, "price": price, "pct_chg": pct_chg });
     }
     console.log(market);
     that.setData({
@@ -85,6 +85,17 @@ Page({
    */
   onShareAppMessage: function () {
 
+  },
+
+  go_to_ts: function (event) {
+    var code = event.currentTarget.dataset.id;
+    var stock = event.currentTarget.dataset.name;
+    console.log(code);
+    console.log(stock);
+    wx.redirectTo({
+      url: '../ts/ts?stock={stock}&code={code}'.format({"stock":stock,"code":code}),
+    });
+    console.log("hello zxg!");
   }
 })
 

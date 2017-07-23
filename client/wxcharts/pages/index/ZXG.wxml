@@ -7,7 +7,7 @@
   </view>
   <block wx:for="{{market}}">
     <scroll-view scroll-y="true" style="height:500px;" bindscrolltolower="upper" bindscrolltolower="lower" bindscroll="scroll" scroll-into-view="{{toView}}" scroll-top="{{scrollTop}}">
-      <view class="tr bg-item">
+      <view class="tr bg-item" bindtap="go_to_ts" data-name="{{item.name}}" data-id = "{{item.code}}">
         <view class="td">{{item.code}}</view>
         <view class="td">{{item.name}}</view>
         <view class="td">{{item.price}}</view>
@@ -15,8 +15,9 @@
       </view>
     </scroll-view>
   </block>
-  <view class="round">
-    <image style="width:40px; height:40px;" src="../../images/add.jpg" id="add_one_round" bindtap="addround"></image>
-    <image style="width:40px; height:40px;" src="../../images/minus.jpg" id="minus_one_round" bindtap="minusround"></image>
-  </view>
+
+</view>
+<view class="round">
+  <image style="width:40px; height:40px;" src="../../images/add.jpg" id="add_one_round" bindtap="addround"></image>
+  <image style="width:40px; height:40px;" src="../../images/minus.jpg" id="minus_one_round" bindtap="minusround"></image>
 </view>
