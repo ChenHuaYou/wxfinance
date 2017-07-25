@@ -14,6 +14,7 @@ from itertools import zip_longest
 from queue import Queue
 import pandas as pd
 import re
+import sys
 
 conn = pymongo.MongoClient()
 db = conn.server
@@ -86,14 +87,15 @@ def send_market(ws):
                 continue
             code = code.group(1)
             value = value.group(1).split(',')
-            market.update({code:value})
+            print(sys.getsizeof(value))
+            db.market.update({'code':code},{'$setOnInsert':{'code':code},'$addToSet':{'market':value}},upsert=True)
         curs = db.user.find({},{"unionId":1,"zxg":1})
+        market = dict([(d['code'],d['market']) for d in list(db.market.find({},{'code':1,'market':1}))])
         for j in curs:
             stock=j["zxg"]
             msg = {key:value for key,value in market.items() if key in stock}
             data = {"from_id":1,"from_group":"server","to_id":j["unionId"],"to_group":"client","msg":msg, "func":"send_market"} 
             ws.send(json.dumps(data))
-        print("...",time.time()-st, len(data))
 
 
 def send():

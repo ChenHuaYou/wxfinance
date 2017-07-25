@@ -25,21 +25,21 @@ Page({
    * 生命周期函数--监听页面初次渲染完成
    */
   onReady: function () {
-    //this.interval = setInterval(this.fresh_market, 1000);
+    this.interval = setInterval(this.fresh_market, 1000);
   },
   fresh_market: function () {
     var that = this;
     var gmarket = app.Data.market;
-    console.log("fuck the on ready!")
     var market = new Array();
     for (var code in gmarket) {
-      var name = gmarket[code][0];
-      var price = gmarket[code][3];
-      var pct_chg = 100 * (gmarket[code][3] - gmarket[code][2]) / gmarket[code][2];
+      var lstmarket = gmarket[code];
+      lstmarket = lstmarket[lstmarket.length-1];
+      var name = lstmarket[0];
+      var price = lstmarket[3];
+      var pct_chg = 100 * (lstmarket[3] - lstmarket[2]) / lstmarket[2];
       pct_chg = pct_chg.toFixed(2);
       market.push({ "code": code, "name": name, "price": price, "pct_chg": pct_chg });
     }
-    console.log(market);
     that.setData({
       market: market,
     })
