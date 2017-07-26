@@ -28,7 +28,7 @@ Page({
    * 生命周期函数--监听页面初次渲染完成
    */
   onReady: function () {
-    this.interval = setInterval(this.fresh_market, 1000);
+    //this.interval = setInterval(this.fresh_market, 1000);
   },
   fresh_market: function () {
     var that = this;
@@ -89,6 +89,20 @@ Page({
   onShareAppMessage: function () {
 
   },
+  /**
+   * 跳转到自选股行情
+   */
+  go_to_ts: function (event) {
+    var code = event.currentTarget.dataset.id;
+    var stock = event.currentTarget.dataset.name;
+    console.log(code);
+    console.log(stock);
+	wx.redirectTo({
+      url: '../ts/ts?stock={stock}&code={code}'.format({"stock":stock,"code":code}),
+    });
+    console.log("hello zxg!");
+  }
+  
   /**
    * 添加自选股
    */

@@ -112,11 +112,15 @@ Page({
         timerArray: ['50ms', '100ms', '200ms', '500ms', '1000ms'],
         isShowAxis: false
     },
-    onLoad: function () {
+    onLoad: function (options) {
         var tsData = storage.getTsData();
         var ts5Data = storage.getTs5Data();
+        console.log("hello ts {code}".format({"code":options.code}));
         this.setData({
             dataIndex: 0,
+            stock:options.stock,
+            code:options.code,
+            time:new Date(),
             ts: tsData,
             ts5: ts5Data
         });
@@ -134,12 +138,10 @@ Page({
     tabChart: function (e) {
         this.clearTimer();
         var type = e.target.dataset.type;
+        console.log(this.data);
         var data = this.data[type];
         this.setData({
             tabName: type,
-            stock: data.name,
-            code: data.code,
-            time: data.info.time,
             yc: data.info.yc
         });
         this['init-' + type]();
