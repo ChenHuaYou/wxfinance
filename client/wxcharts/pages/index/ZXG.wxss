@@ -30,6 +30,8 @@
 }
 
 .round{
+  bottom: 0;
+  left: 50%;
   display:flex;
   justify-content:space-around;
 }

@@ -92,8 +92,16 @@ Page({
         minIndex: 3,
         minArray: ['5分钟', '15分钟', '30分钟', '60分钟']
     },
+    onReady: function () {
+      this.interval = setInterval(this.fresh_kl, 1000);
+    },
+    fresh_kl: function() {
+      console.log(" ... kl");
+      console.log(app.Data.kl);
+    },
     onLoad: function () {
         //默认切换到日K
+        console.log(app.Data.kl);
         this.tabChart({
             target: {
                 dataset: {
@@ -101,6 +109,11 @@ Page({
                 }
             }
         });
+    },
+    back: function () {
+      wx.redirectTo({
+        url: '../index/ZXG',
+      })
     },
     tabChart: function (e) {
         var type = e.target.dataset.type;

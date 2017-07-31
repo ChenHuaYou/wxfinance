@@ -20,6 +20,7 @@ conn = pymongo.MongoClient()
 db = conn.server
 
 chunk_list = lambda a_list, n: zip_longest(*[iter(a_list)]*n)
+all_stocks = tushare.get_stock_basics().index.tolist()
 
 
 
@@ -56,15 +57,37 @@ def send_loop(ws):
     pid = os.fork()
     if not pid: send_market(ws)
     pid = os.fork()
-    if not pid: pass 
+    if not pid: send_kl(ws) 
 
 def get_market(code_list_str):
     url = "http://hq.sinajs.cn/list={codes}".format(codes = code_list_str)
     hq = urlopen(url).read().decode('gbk')
     return hq
 
+def send_kl(ws):
+    db.kl.drop()
+    for code in all_stocks:
+        print(code)
+        DF =  tushare.get_hist_data(code)
+        if len(DF):
+            value = DF.values.tolist()
+            db.kl.update({'code':code},{'$setOnInsert':{'code':code},'$set':{'kl':value}},upsert=True)
+    print("kl ... done")
+    while True:
+        curs = db.user.find({},{"unionId":1,"zxg":1})
+        kl = dict([(d['code'],d['kl']) for d in list(db.kl.find({},{'code':1,'kl':1}))])
+        print("...kl")
+        print(kl)
+        for j in curs:
+            stock=j["zxg"]
+            msg = {key:value for key,value in kl.items() if key in stock}
+            data = {"from_id":1,"from_group":"server","to_id":j["unionId"],"to_group":"client","msg":msg, "func":"send_kl"} 
+            ws.send(json.dumps(data))
+
 def send_market(ws):
-    all_stocks = tushare.get_stock_basics().index.tolist()
+    T = time.localtime()
+    if T.tm_hour * 60 + T.tm_min <= 9*60 + 30:
+        db.market.drop()    
     while True:
         st = time.time()
         data = "" 
@@ -87,7 +110,6 @@ def send_market(ws):
                 continue
             code = code.group(1)
             value = value.group(1).split(',')
-            print(sys.getsizeof(value))
             db.market.update({'code':code},{'$setOnInsert':{'code':code},'$addToSet':{'market':value}},upsert=True)
         curs = db.user.find({},{"unionId":1,"zxg":1})
         market = dict([(d['code'],d['market']) for d in list(db.market.find({},{'code':1,'market':1}))])

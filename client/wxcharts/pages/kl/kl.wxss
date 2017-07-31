@@ -26,3 +26,11 @@
 .stock text{
     display: block;
 }
+
+.round{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  display:flex;
+  justify-content:space-around;
+}

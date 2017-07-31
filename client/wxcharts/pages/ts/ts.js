@@ -127,12 +127,10 @@ Page({
     mdata = {'open':market[0][1],'yc':market[0][2],'price':price,'highest':market[market.length-1][4],'lowest':market[market.length-1][5]};
     console.log(mdata);
     var tsData = storage.getTsData(mdata);
-    var ts5Data = storage.getTs5Data();
     this.setData({
       dataIndex: 0,
       time: '{date} {time}'.format({ 'date': market[market.length - 1][30], 'time': market[market.length - 1][31] }),
       ts: tsData,
-      ts5: ts5Data,
       yc: market[0][2]
     });
     this.tabChart({
@@ -151,6 +149,16 @@ Page({
   },
   onHide: function () {
     clearInterval(timer);
+  },
+  klChart: function() {
+    wx.redirectTo({
+      url: '../kl/kl',
+    })  
+  }, 
+  back: function() {
+    wx.redirectTo({
+      url: '../index/ZXG',
+    })
   },
   tabChart: function (e) {
     this.clearTimer();

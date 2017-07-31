@@ -61,11 +61,15 @@ App({
       }else if (data["from_id"]==1 && data["func"] == "send_market") {
           var market = data["msg"];
           that.Data.market = market; 
+      }else if (data["from_id"]==1 && data["func"] == "send_kl") {
+          var kl = data["msg"];
+          that.Data.kl = kl;
       }
     })
   },
   Data: {
     unionId: null,
     market: null,
+    kl: null,
   }
 });
