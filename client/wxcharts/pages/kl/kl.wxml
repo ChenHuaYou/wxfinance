@@ -2,8 +2,8 @@
 
     <view class="content tab-content">
         <view class="tab">
-        <text class="{{tabName == 'ts' ? 'current': ''}}" data-type="ts" bindtap="tabChart">分时</text>
-        <text class="{{tabName == 'ts5' ? 'current': ''}}" data-type="ts5" bindtap="klChart">日K</text>
+        <text class="{{tabName == 'ts' ? 'current': ''}}" data-type="ts" bindtap="tsChart">分时</text>
+        <text class="{{tabName == 'ts5' ? 'current': ''}}" data-type="ts5">日K</text>
         </view>
         <view class="stock">
             <text>股票：{{stock}} - {{code}}</text>

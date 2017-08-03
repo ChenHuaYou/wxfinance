@@ -92,23 +92,33 @@ Page({
         minIndex: 3,
         minArray: ['5分钟', '15分钟', '30分钟', '60分钟']
     },
+  
+    tsChart: function () {
+      var that = this;
+      wx.redirectTo({
+        url: '../ts/ts?stock={stock}&code={code}'.format({ "stock": that.data.stock, "code": that.data.code }),
+      });
+    }, 
     onReady: function () {
       this.interval = setInterval(this.fresh_kl, 1000);
     },
     fresh_kl: function() {
-      console.log(" ... kl");
-      console.log(app.Data.kl);
+      this.tabChart({
+        target: {
+          dataset: {
+            type: 'dk'
+          }
+        }
+      });
     },
-    onLoad: function () {
-        //默认切换到日K
-        console.log(app.Data.kl);
-        this.tabChart({
-            target: {
-                dataset: {
-                    type: 'dk'
-                }
-            }
-        });
+    onLoad: function (options) {
+      console.log('kl.js onload')
+      console.log(options.code);
+      this.setData({
+        stock: options.stock,
+        code: options.code,
+      });
+
     },
     back: function () {
       wx.redirectTo({
@@ -116,29 +126,18 @@ Page({
       })
     },
     tabChart: function (e) {
-        var type = e.target.dataset.type;
-        var getDataByType = function (type) {
-            return {
-                'dk': function () {
-                    return storage.getDkData();
-                },
-                'wk': function () {
-                    return storage.getWkData();
-                },
-                'mk': function () {
-                    return storage.getMkData();
-                }
-            }[type]();
-        };
-        var data = getDataByType(type);
-        this.setData({
-            tabName: type,
-            stock: data.name,
-            code: data.code,
-            time: data.info.time,
-            yc: data.info.yc
-        });
-        this.draw(data, type);
+        var that = this;
+        var kl = app.Data.kl[that.data.code];
+        //"2010-03-19,61.00,58.35,62.20,58.03,197373.26,11.8亿,-"
+        var price = new Array();
+        for (var i = kl.length-1; i > 0; i--) {
+          console.log(kl[i]);
+          var p = '{date},{o},{c},{h},{l},{v},{m}'.format({ 'date': kl[i][0], 'o': kl[i][1], 'c': kl[i][3], 'h': kl[i][2], 'l': kl[i][4],'v':kl[i][5],'m':kl[i][5]*kl[i][3]});
+          price.push(p);
+          console.log(p);
+        }
+        var data = storage.getDkData(price);
+        this.draw(data, 'dk');
     },
     tabMinChart: function (e) {
         var type = 'mink';
@@ -166,8 +165,6 @@ Page({
         this.setData({
             tabName: type,
             minIndex: index,
-            stock: data.name,
-            code: data.code,
             time: data.info.time,
             yc: data.info.yc
         });

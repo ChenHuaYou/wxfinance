@@ -116,8 +116,12 @@ Page({
     this.interval = setInterval(this.fresh_market, 1000);
   },
   fresh_market: function () {
-    var code = this.data.code;
+    var that = this;
+    var code = that.data.code;
     var market = app.Data.market[code];
+    console.log("ts fresh_market")
+    console.log(code);
+    console.log(market);
     var mdata;
     var price = new Array();
     for (var i = 0; i < market.length; i++) {
@@ -147,13 +151,18 @@ Page({
       code: options.code
     });
   },
+  onUnload: function () {
+    clearInterval(this.interval);
+  },
   onHide: function () {
     clearInterval(timer);
   },
   klChart: function() {
+    console.log("klChart fuck");
+    var that = this;
     wx.redirectTo({
-      url: '../kl/kl',
-    })  
+      url: '../kl/kl?stock={stock}&code={code}'.format({ "stock": that.data.stock, "code": that.data.code }),
+    });
   }, 
   back: function() {
     wx.redirectTo({

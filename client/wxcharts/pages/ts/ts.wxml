@@ -1,6 +1,6 @@
 <view class="container">
     <view class="tab">
-        <text class="{{tabName == 'ts' ? 'current': ''}}" data-type="ts" bindtap="tabChart">分时</text>
+        <text class="{{tabName == 'ts' ? 'current': ''}}" data-type="ts" >分时</text>
         <text class="{{tabName == 'ts5' ? 'current': ''}}" data-type="ts5" bindtap="klChart">日K</text>
     </view>
     <view class="content tab-content" wx:if="{{tabName == 'ts'}}">
