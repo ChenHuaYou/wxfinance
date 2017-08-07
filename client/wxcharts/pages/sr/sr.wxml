@@ -1,0 +1,16 @@
+<view class="table">
+	<view class="tr bg-header">
+	<view class="th">代码</view>
+	<view class="th">简称</view>
+	<view class="th"></view>
+	</view>
+	<scroll-view scroll-y="true" style="height:500px;" bindscrolltolower="upper" bindscrolltolower="lower" bindscroll="scroll" scroll-into-view="{{toView}}" scroll-top="{{scrollTop}}">
+	  <view class="tr bg-item">
+		<view class="td" bindtap="go_to_ts" data-name="{{stock}}" data-id = "{{code}}">{{code}}</view>
+		<view class="td" bindtap="go_to_ts" data-name="{{stock}}" data-id = "{{code}}">{{stock}}</view>
+		<view class="round">
+		  <image style="width:10px; height:10px;" src="../../images/add.jpg" id="add_one_round" bindtap="addround" data-id = "{{code}}"></image>
+		</view>
+	  </view>
+	</scroll-view>
+</view>

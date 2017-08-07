@@ -14,11 +14,14 @@ from itertools import zip_longest
 from queue import Queue
 import pandas as pd
 import re
+import sys
+import datetime
 
 conn = pymongo.MongoClient()
 db = conn.server
 
 chunk_list = lambda a_list, n: zip_longest(*[iter(a_list)]*n)
+all_stocks = sorted(tushare.get_stock_basics().index.tolist())
 
 
 
@@ -38,12 +41,18 @@ def on_close(ws):
     print("### closed ###")
 
 
-def send_on_open(ws):
+def send_ts_on_open(ws):
     print("### send opened ###")
     data = {"from_id":1,"from_group":"server","to_id":0,"to_group":
     "server","msg":"","func":"send_on_open"}
-    ws.send(json.dumps(data))
-    send_loop(ws)
+    send_market(ws)
+
+def send_kl_on_open(ws):
+    print("### send opened ###")
+    data = {"from_id":1,"from_group":"server","to_id":0,"to_group":
+    "server","msg":"","func":"send_on_open"}
+    send_kl(ws)
+
 
 def recv_on_open(ws):
     print("### recv opened ###")
@@ -51,19 +60,41 @@ def recv_on_open(ws):
     "server","msg":"","func":"recv_on_open"}
     ws.send(json.dumps(data))
 
-def send_loop(ws):
-    pid = os.fork()
-    if not pid: send_market(ws)
-    pid = os.fork()
-    if not pid: pass 
 
 def get_market(code_list_str):
     url = "http://hq.sinajs.cn/list={codes}".format(codes = code_list_str)
     hq = urlopen(url).read().decode('gbk')
     return hq
 
+def send_kl(ws):
+    T = datetime.datetime.now()
+    for code in all_stocks:
+        print(code)
+        record = db.kl.find_one({'code':code},{'Date':1})
+        print(record)
+        if record and record['Date'].day == T.day:
+            continue
+        DF = tushare.get_hist_data(code)
+        if DF is not None and len(DF):
+            DF = DF.reset_index()
+            value = DF.values.tolist()
+            db.kl.update({'code':code},{'$setOnInsert':{'code':code},'$set':{'kl':value,'Date':T}},upsert=True)
+    print("kl ... done")
+    while True:
+        curs = db.user.find({},{"unionId":1,"zxg":1})
+        kl = dict([(d['code'],d['kl']) for d in list(db.kl.find({},{'code':1,'kl':1}))])
+        print("...kl")
+        for j in curs:
+            stock=j["zxg"]
+            msg = {key:value for key,value in kl.items() if key in stock}
+            data = {"from_id":1,"from_group":"server","to_id":j["unionId"],"to_group":"client","msg":msg, "func":"send_kl"} 
+            print(json.dumps(data))
+            ws.send(json.dumps(data))
+
 def send_market(ws):
-    all_stocks = tushare.get_stock_basics().index.tolist()
+    T = time.localtime()
+    if T.tm_hour * 60 + T.tm_min <= 9*60 + 30:
+        db.market.drop()    
     while True:
         st = time.time()
         data = "" 
@@ -86,27 +117,39 @@ def send_market(ws):
                 continue
             code = code.group(1)
             value = value.group(1).split(',')
-            market.update({code:value})
+            db.market.update({'code':code},{'$setOnInsert':{'code':code},'$addToSet':{'market':value}},upsert=True)
         curs = db.user.find({},{"unionId":1,"zxg":1})
+        market = dict([(d['code'],d['market']) for d in list(db.market.find({},{'code':1,'market':1}))])
         for j in curs:
             stock=j["zxg"]
             msg = {key:value for key,value in market.items() if key in stock}
             data = {"from_id":1,"from_group":"server","to_id":j["unionId"],"to_group":"client","msg":msg, "func":"send_market"} 
             ws.send(json.dumps(data))
-        print("...",time.time()-st, len(data))
 
 
-def send():
+def server_send_ts():
     websocket.enableTrace(True)
     ws = websocket.WebSocketApp("wss://luozhiming.club/",
                                 on_message = send_on_message,
                                 on_error = on_error,
                                 on_close = on_close,
-                                on_open = send_on_open
+                                on_open = send_ts_on_open
                                 )
     ws.run_forever()
 
-def recv():
+
+def server_send_kl():
+    websocket.enableTrace(True)
+    ws = websocket.WebSocketApp("wss://luozhiming.club/",
+                                on_message = send_on_message,
+                                on_error = on_error,
+                                on_close = on_close,
+                                on_open = send_kl_on_open
+                                )
+    ws.run_forever()
+
+
+def server_recv():
     websocket.enableTrace(True)
     ws = websocket.WebSocketApp("wss://luozhiming.club/",
                                 on_message = recv_on_message,
@@ -119,8 +162,9 @@ def recv():
 
 def main():
     with Pool(2) as p:
-        p.apply_async(send,())
-        p.apply_async(recv,())
+        p.apply_async(server_send_ts,())
+        p.apply_async(server_send_kl,())
+        p.apply_async(server_recv,())
         p.close()
         p.join()
 if __name__ == "__main__":

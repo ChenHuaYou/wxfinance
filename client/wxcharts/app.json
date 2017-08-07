@@ -3,6 +3,7 @@
     "pages/index/ZXG",
     "pages/ts/ts",
     "pages/kl/kl",
+	"pages/sr/sr",
     "pages/setting/setting"
   ],
   "window": {

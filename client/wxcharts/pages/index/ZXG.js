@@ -21,28 +21,29 @@ Page({
 
     console.log("fuck you !!!!!!!!!!!!!!!!!!")
 	var that = this
-	WxSearch.init(that,43,['000001.SH','000002.SH','000001.SZ','000002.SZ']);
+	WxSearch.init(that,43,['000001','000002']);
+	WxSearch.initMindKeys(['000001','000002']);
   },
 
   /**
    * 生命周期函数--监听页面初次渲染完成
    */
   onReady: function () {
-    //this.interval = setInterval(this.fresh_market, 1000);
+    this.interval = setInterval(this.fresh_market, 1000);
   },
   fresh_market: function () {
     var that = this;
     var gmarket = app.Data.market;
-    console.log("fuck the on ready!")
     var market = new Array();
     for (var code in gmarket) {
-      var name = gmarket[code][0];
-      var price = gmarket[code][3];
-      var pct_chg = 100*(gmarket[code][3] - gmarket[code][2])/gmarket[code][2];
-      pct_chg = pct_chg.toFixed(2); 
-      market.push({"code":code,"name":name,"price":price,"pct_chg":pct_chg}); 
+      var lstmarket = gmarket[code];
+      lstmarket = lstmarket[lstmarket.length-1];
+      var name = lstmarket[0];
+      var price = lstmarket[3];
+      var pct_chg = 100 * (lstmarket[3] - lstmarket[2]) / lstmarket[2];
+      pct_chg = pct_chg.toFixed(2);
+      market.push({ "code": code, "name": name, "price": price, "pct_chg": pct_chg });
     }
-    console.log(market);
     that.setData({
       market: market,
     })
@@ -101,8 +102,7 @@ Page({
       url: '../ts/ts?stock={stock}&code={code}'.format({"stock":stock,"code":code}),
     });
     console.log("hello zxg!");
-  }
-  
+  },
   /**
    * 添加自选股
    */
@@ -112,7 +112,12 @@ Page({
   wxSearchFn: function(e){
     var that = this
     WxSearch.wxSearchAddHisKey(that);
-    
+	var code = that.data.wxSearchData.value;
+    if(typeof(code) == "undefined" || code.length == 0){return;}
+	console.log(code);
+	wx.redirectTo({
+      url: '../sr/sr?code={code}'.format({"code":code}),
+    });	
   },
   wxSearchInput: function(e){
     var that = this
