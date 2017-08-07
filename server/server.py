@@ -17,6 +17,7 @@ import re
 import sys
 import datetime
 from goto import with_goto
+import logging
 
 conn = pymongo.MongoClient()
 db = conn.server
@@ -30,7 +31,8 @@ def send_on_message(ws, message):
     pass
 
 def recv_on_message(ws, data):
-    print("recv:",data)
+    with open('recv.log','w+') as f:
+        print(data,file=f)
     req = json.loads(data)["msg"]
     exec(req)
 
@@ -163,10 +165,10 @@ def server_recv():
 
 
 def main():
-    with Pool(2) as p:
+    with Pool(10) as p:
+        p.apply_async(server_recv,())
         p.apply_async(server_send_ts,())
         p.apply_async(server_send_kl,())
-        p.apply_async(server_recv,())
         p.close()
         p.join()
 if __name__ == "__main__":
