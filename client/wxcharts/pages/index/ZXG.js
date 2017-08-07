@@ -2,6 +2,21 @@
 var WxSearch = require('../../wxSearch/wxSearch.js');
 var app = getApp();
 
+function go_to_ts(event) {
+  var code = event.currentTarget.dataset.id;
+  var stock = event.currentTarget.dataset.name;
+  console.log(code);
+  console.log(stock);
+  wx.redirectTo({
+    url: '../ts/ts?stock={stock}&code={code}'.format({ "stock": stock, "code": code }),
+  });
+  console.log("hello zxg!");
+  wx.redirectTo({
+    url: '../ts/ts?stock={stock}&code={code}'.format({ "stock": stock, "code": code }),
+  });
+  console.log("hello zxg!");
+};
+
 Page({
 
   /**
@@ -18,9 +33,9 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-	var that = this;
-	WxSearch.init(that,43,['000001','000002']);
-	WxSearch.initMindKeys(['000001','000002']);
+    var that = this;
+    WxSearch.init(that, 43, ['000001', '000002']);
+    WxSearch.initMindKeys(['000001', '000002']);
   },
 
   /**
@@ -35,7 +50,7 @@ Page({
     var market = new Array();
     for (var code in gmarket) {
       var lstmarket = gmarket[code];
-      lstmarket = lstmarket[lstmarket.length-1];
+      lstmarket = lstmarket[lstmarket.length - 1];
       var name = lstmarket[0];
       var price = lstmarket[3];
       var pct_chg = 100 * (lstmarket[3] - lstmarket[2]) / lstmarket[2];
@@ -91,61 +106,64 @@ Page({
   /**
    * 跳转到自选股行情
    */
-  go_to_ts: function (event) {
-    var code = event.currentTarget.dataset.id;
-    var stock = event.currentTarget.dataset.name;
-    console.log(code);
-    console.log(stock);
-    wx.redirectTo({
-      url: '../ts/ts?stock={stock}&code={code}'.format({"stock":stock,"code":code}),
-    });
-    console.log("hello zxg!");
-	wx.redirectTo({
-      url: '../ts/ts?stock={stock}&code={code}'.format({"stock":stock,"code":code}),
-    });
-    console.log("hello zxg!");
+  click: function (event) {
+    console.log(event);
+    if (event["type"]=="longtap"){
+      var code = event.currentTarget.dataset.id;
+      var unionId = app.Data.unionId;
+      var req = ("db.user.update({'unionId':'{unionId1}'}," +
+        "{'$pull':{'zxg':'{code}'}})").format({ "unionId1": unionId, "code": code });
+      console.log(req);
+      wx.sendSocketMessage({
+        data: JSON.stringify({ "from_id": unionId, "from_group": "client", "to_id": 2, "to_group": "server", "msg": req }),
+        success: function () { console.log("删除自选代码") }
+      });
+    }else{
+      go_to_ts(event);
+    }
   },
+
   /**
    * 添加自选股
    */
-  addround: function(event) {
+  addround: function (event) {
     console.log("!!!clicked")
-  },  
-  wxSearchFn: function(e){
+  },
+  wxSearchFn: function (e) {
     var that = this
     WxSearch.wxSearchAddHisKey(that);
-	var code = that.data.wxSearchData.value;
-    if(typeof(code) == "undefined" || code.length == 0){return;}
-	console.log(code);
-	wx.redirectTo({
-      url: '../sr/sr?code={code}'.format({"code":code}),
-    });	
+    var code = that.data.wxSearchData.value;
+    if (typeof (code) == "undefined" || code.length == 0) { return; }
+    console.log(code);
+    wx.redirectTo({
+      url: '../sr/sr?code={code}'.format({ "code": code }),
+    });
   },
-  wxSearchInput: function(e){
+  wxSearchInput: function (e) {
     var that = this
-    WxSearch.wxSearchInput(e,that);
+    WxSearch.wxSearchInput(e, that);
   },
-  wxSerchFocus: function(e){
+  wxSerchFocus: function (e) {
     var that = this
-    WxSearch.wxSearchFocus(e,that);
+    WxSearch.wxSearchFocus(e, that);
   },
-  wxSearchBlur: function(e){
+  wxSearchBlur: function (e) {
     var that = this
-    WxSearch.wxSearchBlur(e,that);
+    WxSearch.wxSearchBlur(e, that);
   },
-  wxSearchKeyTap:function(e){
+  wxSearchKeyTap: function (e) {
     var that = this
-    WxSearch.wxSearchKeyTap(e,that);
+    WxSearch.wxSearchKeyTap(e, that);
   },
-  wxSearchDeleteKey: function(e){
+  wxSearchDeleteKey: function (e) {
     var that = this
-    WxSearch.wxSearchDeleteKey(e,that);
+    WxSearch.wxSearchDeleteKey(e, that);
   },
-  wxSearchDeleteAll: function(e){
+  wxSearchDeleteAll: function (e) {
     var that = this;
     WxSearch.wxSearchDeleteAll(that);
   },
-  wxSearchTap: function(e){
+  wxSearchTap: function (e) {
     var that = this
     WxSearch.wxSearchHiddenPancel(that);
   }

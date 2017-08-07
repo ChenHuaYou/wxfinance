@@ -16,15 +16,11 @@
     <view class="th">涨跌幅</view>
   </view>
   <block wx:for="{{market}}">
-    <view class="tr bg-item" bindtap="go_to_ts" data-name="{{item.name}}" data-id="{{item.code}}">
+    <view class="tr bg-item" catchtap = "click" catchlongtap = "click" data-name="{{item.name}}" data-id="{{item.code}}">
       <view class="td">{{item.code}}</view>
       <view class="td">{{item.name}}</view>
       <view class="td">{{item.price}}</view>
       <view class="td">{{item.pct_chg}}</view>
     </view>
   </block>
-</view>
-<view class="round">
-  <image style="width:40px; height:40px;" src="../../images/add.jpg" id="add_one_round" bindtap="addround"></image>
-  <image style="width:40px; height:40px;" src="../../images/minus.jpg" id="minus_one_round" bindtap="minusround"></image>
 </view>
