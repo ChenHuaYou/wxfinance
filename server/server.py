@@ -16,6 +16,7 @@ import pandas as pd
 import re
 import sys
 import datetime
+from goto import with_goto
 
 conn = pymongo.MongoClient()
 db = conn.server
@@ -66,12 +67,12 @@ def get_market(code_list_str):
     hq = urlopen(url).read().decode('gbk')
     return hq
 
+@with_goto
 def send_kl(ws):
+    label .begin
     T = datetime.datetime.now()
     for code in all_stocks:
-        print(code)
         record = db.kl.find_one({'code':code},{'Date':1})
-        print(record)
         if record and record['Date'].day == T.day:
             continue
         DF = tushare.get_hist_data(code)
@@ -79,23 +80,24 @@ def send_kl(ws):
             DF = DF.reset_index()
             value = DF.values.tolist()
             db.kl.update({'code':code},{'$setOnInsert':{'code':code},'$set':{'kl':value,'Date':T}},upsert=True)
-    print("kl ... done")
     while True:
+        T = datetime.datetime.now()
+        if T.hour == 5 and T.minute == 0 and T.second == 0:
+            goto .begin
         curs = db.user.find({},{"unionId":1,"zxg":1})
         kl = dict([(d['code'],d['kl']) for d in list(db.kl.find({},{'code':1,'kl':1}))])
-        print("...kl")
         for j in curs:
             stock=j["zxg"]
             msg = {key:value for key,value in kl.items() if key in stock}
             data = {"from_id":1,"from_group":"server","to_id":j["unionId"],"to_group":"client","msg":msg, "func":"send_kl"} 
-            print(json.dumps(data))
             ws.send(json.dumps(data))
 
 def send_market(ws):
-    T = time.localtime()
-    if T.tm_hour * 60 + T.tm_min <= 9*60 + 30:
-        db.market.drop()    
     while True:
+        T = datetime.datetime.now()
+        if T.hour == 5 and T.minute == 0 and T.second == 0:
+            db.market.drop()    
+
         st = time.time()
         data = "" 
         stocks = list(map(lambda x: "sh"+x if x[0]=="6" else "sz"+x, all_stocks))

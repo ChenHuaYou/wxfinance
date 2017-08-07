@@ -57,6 +57,7 @@ App({
           "{'$setOnInsert':{'unionId':'{unionId2}'},'$addToSet':{'zxg':{'$each':['000001','399006']}}},upsert=True)").format({ "unionId1": unionId, "unionId2": unionId });
         wx.sendSocketMessage({
           data: JSON.stringify({ "from_id": unionId, "from_group": "client", "to_id": 2, "to_group": "server", "msg": req }),
+          success:function(){console.log("添加默认代码")}
         })
       }else if (data["from_id"]==1 && data["func"] == "send_market") {
           var market = data["msg"];

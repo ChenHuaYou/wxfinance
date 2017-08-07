@@ -1,3 +1,13 @@
+<import src="/wxSearch/wxSearch.wxml" />
+
+<view class="wxSearch-section">
+  <view class="wxSearch-pancel">
+    <input bindinput="wxSearchInput" bindfocus="wxSerchFocus" value="{{wxSearchData.value}}" bindblur="wxSearchBlur" class="wxSearch-input" placeholder="搜索" />
+    <button class="wxSearch-button" bindtap="wxSearchFn" size="mini" plain="true">搜索</button>
+  </view>
+</view>
+<template is="wxSearch" data="{{wxSearchData}}" />
+
 <view class="table">
   <view class="tr bg-header">
     <view class="th">代码</view>
@@ -6,16 +16,13 @@
     <view class="th">涨跌幅</view>
   </view>
   <block wx:for="{{market}}">
-    <scroll-view scroll-y="true" style="height:500px;" bindscrolltolower="upper" bindscrolltolower="lower" bindscroll="scroll" scroll-into-view="{{toView}}" scroll-top="{{scrollTop}}">
-      <view class="tr bg-item" bindtap="go_to_ts" data-name="{{item.name}}" data-id = "{{item.code}}">
-        <view class="td">{{item.code}}</view>
-        <view class="td">{{item.name}}</view>
-        <view class="td">{{item.price}}</view>
-        <view class="td">{{item.pct_chg}}</view>
-      </view>
-    </scroll-view>
+    <view class="tr bg-item" bindtap="go_to_ts" data-name="{{item.name}}" data-id="{{item.code}}">
+      <view class="td">{{item.code}}</view>
+      <view class="td">{{item.name}}</view>
+      <view class="td">{{item.price}}</view>
+      <view class="td">{{item.pct_chg}}</view>
+    </view>
   </block>
-
 </view>
 <view class="round">
   <image style="width:40px; height:40px;" src="../../images/add.jpg" id="add_one_round" bindtap="addround"></image>

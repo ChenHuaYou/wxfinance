@@ -118,7 +118,9 @@ Page({
         stock: options.stock,
         code: options.code,
       });
-
+    },
+    onUnload: function () {
+      clearInterval(this.interval);
     },
     back: function () {
       wx.redirectTo({
