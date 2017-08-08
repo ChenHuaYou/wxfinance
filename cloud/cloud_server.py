@@ -53,14 +53,20 @@ class cloud_route(tornado.websocket.WebSocketHandler):
     """
 
     def route(self,data):
-        if data["to_id"] == 0:
-            self.login(data)
-        else:
-            try:
-                print(data)
+        print("...",data["to_id"])
+        try:
+            if data["to_id"] == 0:
+                self.login(data)
+            elif data["to_id"] == "all":
+                for k,v in user.items():
+                    if k not in [2,0,-1,-2,-3,-4,-5]:
+                        v.write_message(data)
+            elif data["to_id"] == 2:
+                user[2].write_message(data)
+            else:
                 user[data["to_id"]].write_message(data)
-            except:
-                traceback.print_exc()
+        except:
+            traceback.print_exc()
 
     def login(self,data):
         try:
@@ -83,7 +89,9 @@ class cloud_route(tornado.websocket.WebSocketHandler):
         self.route(data)
 
     def on_close(self):
-        print("{id} is closed".format(id = {v:k for k,v in user.items()}[self]))
+        _id = {v:k for k,v in user.items()}[self]
+        user.pop(_id)
+        print("{Id} is closed".format(Id=_id))
 
     def check_origin(self,origin):
         return True

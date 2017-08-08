@@ -113,43 +113,57 @@ Page({
     isShowAxis: false
   },
   onReady: function () {
-    this.interval = setInterval(this.fresh_market, 1000);
+    this.interval = setInterval(this.fresh_market);
   },
   fresh_market: function () {
     var that = this;
     var code = that.data.code;
-    var market = app.Data.market[code];
-    console.log("ts fresh_market")
-    console.log(code);
-    console.log(market);
-    var mdata;
-    var price = new Array();
-    for (var i = 0; i < market.length; i++) {
-      var p = '{date} {time},{price},{vol},{avg_price},0'.format({ 'date': market[i][30], 'time': market[i][31], 'price': market[i][3], 'vol': market[i][8], 'avg_price': market[i][3] })
-      price.push(p);
-    }
-    mdata = {'open':market[0][1],'yc':market[0][2],'price':price,'highest':market[market.length-1][4],'lowest':market[market.length-1][5]};
-    console.log(mdata);
-    var tsData = storage.getTsData(mdata);
-    this.setData({
-      dataIndex: 0,
-      time: '{date} {time}'.format({ 'date': market[market.length - 1][30], 'time': market[market.length - 1][31] }),
-      ts: tsData,
-      yc: market[0][2]
-    });
-    this.tabChart({
-      target: {
-        dataset: {
-          type: 'ts'
-        }
+    var ts = app.Data.ts;
+    if (ts != null) {
+      ts = ts[code];
+      console.log(ts);
+      var market = app.Data.zxg[code];
+      var mdata;
+      var price = new Array();
+      for (var i = 0; i < ts.length; i++) {
+        console.log(ts[i]);
+        var p = '{date} {time},{price},{vol},{avg_price},0'.format({ 'date': market[30], 'time': ts[i][31], 'price': ts[i][3], 'vol': ts[i][9], 'avg_price': ts[i][3] });
+        price.push(p);
+        console.log(p);
       }
-    });
+      mdata = { 'open': market[1], 'yc': market[2], 'price': price, 'highest': market[4], 'lowest': market[5] };
+      var tsData = storage.getTsData(mdata);
+      this.setData({
+        dataIndex: 0,
+        time: '{date} {time}'.format({ 'date': market[30], 'time': market[31] }),
+        ts: tsData,
+        yc: market[2]
+      });
+      this.tabChart({
+        target: {
+          dataset: {
+            type: 'ts'
+          }
+        }
+      });
+      clearInterval(that.interval);
+    }else{
+      console.log(ts);
+    }
+
   },
   onLoad: function (options) {
     this.setData({
       stock: options.stock,
       code: options.code
     });
+    var unionId = app.Data.unionId;
+    var req = options.code;
+    wx.sendSocketMessage({
+      data: JSON.stringify({ "from_id": unionId, "from_group": "client", "to_id": -2, "to_group": "server", "msg": req }),
+      success: function () { console.log("请求分时图"); }
+    });
+
   },
   onUnload: function () {
     clearInterval(this.interval);
@@ -157,14 +171,14 @@ Page({
   onHide: function () {
     clearInterval(timer);
   },
-  klChart: function() {
+  klChart: function () {
     console.log("klChart fuck");
     var that = this;
     wx.redirectTo({
       url: '../kl/kl?stock={stock}&code={code}'.format({ "stock": that.data.stock, "code": that.data.code }),
     });
-  }, 
-  back: function() {
+  },
+  back: function () {
     wx.redirectTo({
       url: '../index/ZXG',
     })

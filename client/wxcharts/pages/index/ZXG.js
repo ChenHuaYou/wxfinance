@@ -46,11 +46,14 @@ Page({
   },
   fresh_market: function () {
     var that = this;
-    var gmarket = app.Data.market;
+    var gmarket = app.Data.ts;
+    var zxg = app.Data.zxg;
+    console.log(gmarket);
+    console.log(zxg);
     var market = new Array();
-    for (var code in gmarket) {
-      var lstmarket = gmarket[code];
-      lstmarket = lstmarket[lstmarket.length - 1];
+    for (var code in zxg) {
+      console.log(code);
+      var lstmarket = zxg[code];
       var name = lstmarket[0];
       var price = lstmarket[3];
       var pct_chg = 100 * (lstmarket[3] - lstmarket[2]) / lstmarket[2];

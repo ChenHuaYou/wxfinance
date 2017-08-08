@@ -33,22 +33,12 @@ def send_on_message(ws, message):
 def send_ts_on_message(ws,data):
     req = json.loads(data)
     code = req['msg']
-    msg = db.market.find_one({'code':code},{"code":1,"market":1})
-    msg = {msg["code"]:msg["market"]}
+    msg = db.user.find_one({'code':code},{"code":1,"market":1})
     print(msg)
     data = {"from_id":-2,"from_group":"server","to_id":req["from_id"],"to_group":
     "client","msg":msg,"func":"send_ts"}
     ws.send(json.dumps(data))
 
-def send_kl_on_message(ws,data):
-    req = json.loads(data)
-    code = req['msg']
-    msg = db.kl.find_one({'code':code},{"code":1,"kl":1})
-    msg = {msg["code"]:msg["kl"]}
-    print(msg)
-    data = {"from_id":-3,"from_group":"server","to_id":req["from_id"],"to_group":
-    "client","msg":msg,"func":"send_kl"}
-    ws.send(json.dumps(data))
 
 def recv_on_message(ws, data):
     req = json.loads(data)["msg"]
@@ -80,6 +70,7 @@ def send_kl_on_open(ws):
     data = {"from_id":-3,"from_group":"server","to_id":0,"to_group":
     "server","msg":"","func":"send_on_open"}
     ws.send(json.dumps(data))
+    send_kl(ws)
 
 
 def recv_on_open(ws):
@@ -122,26 +113,29 @@ def send_zxg(ws):
             msg = {k:v for k,v in market.items() if k in j["zxg"]}
             data = {"from_id":-1,"from_group":"server","to_id":j["unionId"],"to_group":"client","msg":msg, "func":"send_zxg"} 
             ws.send(json.dumps(data))
-    
-#这里每天准时5点正读取收盘价序列
+
 @with_goto
-def get_kl(ws):
+def send_kl(ws):
     print("...","send kl")
     label .begin
     T = datetime.datetime.now()
-    while True:
-        if T.hour == 5 and T.minute == 0:
-            break 
-        T = datetime.datetime.now()
-
     for code in all_stocks:
+        record = db.kl.find_one({'code':code},{'Date':1})
+        if record and record['Date'].day == T.day:
+            continue
         DF = tushare.get_hist_data(code)
         if DF is not None and len(DF):
             DF = DF.reset_index()
             value = DF.values.tolist()
-            db.kl.update({'code':code},{'$setOnInsert':{'code':code},'$set':{'kl':value}},upsert=True)
-    goto .begin
-
+            db.kl.update({'code':code},{'$setOnInsert':{'code':code},'$set':{'kl':value,'Date':T}},upsert=True)
+    while True:
+        T = datetime.datetime.now()
+        if T.hour == 5 and T.minute == 0 and T.second == 0:
+            goto .begin
+        kl = dict([(d['code'],d['kl']) for d in list(db.kl.find({},{'code':1,'kl':1}))])
+        msg = kl
+        data = {"from_id":-3,"from_group":"server","to_id":"all","to_group":"client","msg":msg, "func":"send_kl"} 
+        ws.send(json.dumps(data))
 
 #这里马不停蹄的读取新浪行情保存到数据库
 def get_sina_market(ws):
@@ -201,7 +195,7 @@ def server_send_ts():
 def server_send_kl():
     websocket.enableTrace(True)
     ws = websocket.WebSocketApp("wss://luozhiming.club/",
-                                on_message = send_kl_on_message,
+                                on_message = send_on_message,
                                 on_error = on_error,
                                 on_close = on_close,
                                 on_open = send_kl_on_open
@@ -223,11 +217,10 @@ def server_recv():
 def main():
     with Pool(10) as p:
         p.apply_async(get_sina_market,())
-        p.apply_async(get_kl,())
         p.apply_async(server_recv,())
         p.apply_async(server_send_zxg,())
         p.apply_async(server_send_ts,())
-        p.apply_async(server_send_kl,())
+#p.apply_async(server_send_kl,())
         p.close()
         p.join()
 if __name__ == "__main__":
