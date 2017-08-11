@@ -48,11 +48,8 @@ Page({
     var that = this;
     var gmarket = app.Data.ts;
     var zxg = app.Data.zxg;
-    console.log(gmarket);
-    console.log(zxg);
     var market = new Array();
     for (var code in zxg) {
-      console.log(code);
       var lstmarket = zxg[code];
       var name = lstmarket[0];
       var price = lstmarket[3];

@@ -60,11 +60,17 @@ App({
           success: function () { console.log("添加默认代码") }
         })
       } else if (data["from_id"] == -1 && data["func"] == "send_zxg") {
+        console.log("from server -1");
         that.Data.zxg = data["msg"];
       } else if (data["from_id"] == -2 && data["func"] == "send_ts") {
+        console.log("from server -2");
         that.Data.ts = data["msg"];
       } else if (data["from_id"] == -3 && data["func"] == "send_kl") {
+        console.log("from server -3");
         that.Data.kl = data["msg"];
+      } else if (data["from_id"] == -4 && data["func"] == "send_market") {
+        console.log("from sever -4");
+        that.Data.market = data["msg"];
       }
     })
   },
@@ -73,5 +79,6 @@ App({
     zxg: null,
     ts: null,
     kl: null,
+    market:null,
   }
 });
