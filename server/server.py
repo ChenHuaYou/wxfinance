@@ -19,6 +19,8 @@ import datetime
 from goto import with_goto
 import logging
 from apscheduler.schedulers.blocking import BlockingScheduler
+import traceback
+from retry import retry
 
 sched = BlockingScheduler()
 conn = pymongo.MongoClient()
@@ -99,6 +101,7 @@ def recv_on_open(ws):
 
 
 #这里发送自选股到微信端
+@retry()
 def send_zxg(ws):
     def get_market(code_list_str):
         url = "http://hq.sinajs.cn/list={codes}".format(codes = code_list_str)
@@ -134,6 +137,7 @@ def send_zxg(ws):
             ws.send(json.dumps(data))
 
 #这里不停的广播实时价格行情
+@retry()
 def send_market(ws):
     def get_market(code_list_str):
         url = "http://hq.sinajs.cn/list={codes}".format(codes = code_list_str)
