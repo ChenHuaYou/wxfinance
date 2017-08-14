@@ -101,76 +101,84 @@ def recv_on_open(ws):
 
 
 #这里发送自选股到微信端
-@retry()
+@with_goto
 def send_zxg(ws):
+    label .begin
     def get_market(code_list_str):
         url = "http://hq.sinajs.cn/list={codes}".format(codes = code_list_str)
         hq = urlopen(url).read().decode('gbk')
         return hq
 
     while True:
-        curs = db.user.find({},{"unionId":1,"zxg":1})
-        data = "" 
-        stocks = list(map(lambda x: "sh"+x if x[0]=="6" else "sz"+x, all_stocks))
-        stocks = list(chunk_list(stocks, 100))
-        stocks = list(map(lambda x: [j for j in x if j != None], stocks))
-        stocks = list(map(lambda x: ",".join(x), stocks))
-        with ThreadPool(30) as pool:
-            return_list = pool.map(get_market,stocks)
-            pool.close()
-            pool.join()
-        for i in return_list:
-            data = data + str(i)
-        data = data.split(";")
-        market = dict()
-        for i in data:
-            code = re.search('hq_str_\w{2}(\d{6})',i)
-            value = re.search('="(.+),00"',i)
-            if not (code and value):
-               continue 
-            code = code.group(1)
-            value = value.group(1).split(',')
-            market.update({code:value})
-        for j in curs:
-            msg = {k:v for k,v in market.items() if k in j["zxg"]}
-            data = {"from_id":-1,"from_group":"server","to_id":j["unionId"],"to_group":"client","msg":msg, "func":"send_zxg"} 
-            ws.send(json.dumps(data))
+        try:
+            curs = db.user.find({},{"unionId":1,"zxg":1})
+            data = "" 
+            stocks = list(map(lambda x: "sh"+x if x[0]=="6" else "sz"+x, all_stocks))
+            stocks = list(chunk_list(stocks, 100))
+            stocks = list(map(lambda x: [j for j in x if j != None], stocks))
+            stocks = list(map(lambda x: ",".join(x), stocks))
+            with ThreadPool(30) as pool:
+                return_list = pool.map(get_market,stocks)
+                pool.close()
+                pool.join()
+            for i in return_list:
+                data = data + str(i)
+            data = data.split(";")
+            market = dict()
+            for i in data:
+                code = re.search('hq_str_\w{2}(\d{6})',i)
+                value = re.search('="(.+),00"',i)
+                if not (code and value):
+                   continue 
+                code = code.group(1)
+                value = value.group(1).split(',')
+                market.update({code:value})
+            for j in curs:
+                msg = {k:v for k,v in market.items() if k in j["zxg"]}
+                data = {"from_id":-1,"from_group":"server","to_id":j["unionId"],"to_group":"client","msg":msg, "func":"send_zxg"} 
+                ws.send(json.dumps(data))
+        except:
+            goto .begin
 
 #这里不停的广播实时价格行情
-@retry()
+@with_goto
 def send_market(ws):
+    label .begin
     def get_market(code_list_str):
         url = "http://hq.sinajs.cn/list={codes}".format(codes = code_list_str)
         hq = urlopen(url).read().decode('gbk')
         return hq
 
     while True:
-        curs = db.user.find({},{"unionId":1,"zxg":1})
-        data = "" 
-        stocks = list(map(lambda x: "sh"+x if x[0]=="6" else "sz"+x, all_stocks))
-        stocks = list(chunk_list(stocks, 100))
-        stocks = list(map(lambda x: [j for j in x if j != None], stocks))
-        stocks = list(map(lambda x: ",".join(x), stocks))
-        with ThreadPool(30) as pool:
-            return_list = pool.map(get_market,stocks)
-            pool.close()
-            pool.join()
-        for i in return_list:
-            data = data + str(i)
-        data = data.split(";")
-        market = dict()
-        for i in data:
-            code = re.search('hq_str_\w{2}(\d{6})',i)
-            value = re.search('="(.+),00"',i)
-            if not (code and value):
-               continue 
-            code = code.group(1)
-            value = value.group(1).split(',')
-            market.update({code:value})
+        try:
+            curs = db.user.find({},{"unionId":1,"zxg":1})
+            data = "" 
+            stocks = list(map(lambda x: "sh"+x if x[0]=="6" else "sz"+x, all_stocks))
+            stocks = list(chunk_list(stocks, 100))
+            stocks = list(map(lambda x: [j for j in x if j != None], stocks))
+            stocks = list(map(lambda x: ",".join(x), stocks))
+            with ThreadPool(30) as pool:
+                return_list = pool.map(get_market,stocks)
+                pool.close()
+                pool.join()
+            for i in return_list:
+                data = data + str(i)
+            data = data.split(";")
+            market = dict()
+            for i in data:
+                code = re.search('hq_str_\w{2}(\d{6})',i)
+                value = re.search('="(.+),00"',i)
+                if not (code and value):
+                   continue 
+                code = code.group(1)
+                value = value.group(1).split(',')
+                market.update({code:value})
 
-        msg = market 
-        data = {"from_id":-4,"from_group":"server","to_id":"all","to_group":"client","msg":msg, "func":"send_market"} 
-        ws.send(json.dumps(data))
+            msg = market 
+            data = {"from_id":-4,"from_group":"server","to_id":"all","to_group":"client","msg":msg, "func":"send_market"} 
+            ws.send(json.dumps(data))
+        except:
+            goto .begin
 
 #这里每天准时5点正读取收盘价序列
 def get_tushare_kl():
@@ -288,6 +296,7 @@ def main():
         p.apply_async(server_send_ts,())
         p.apply_async(server_send_kl,())
         p.apply_async(server_send_market,())
+        p.daemon = True
         p.close()
         p.join()
 if __name__ == "__main__":
