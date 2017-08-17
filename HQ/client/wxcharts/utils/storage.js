@@ -18,7 +18,7 @@ module.exports = {
                 "yc": mdata['yc'],
                 "time": "2017-01-17 15:00:00",
                 "ticks": "34200|54000|1|34200|41400|46800|54000",
-                "total": "241",
+                "total": "1",
                 "pricedigit": "0.00"
             },
             "data": mdata['price']

@@ -1,0 +1,186 @@
+#! /usr/bin/python3
+import tornado.ioloop
+import tornado.web
+import tornado.websocket
+import tornado.autoreload
+from tornado.httpserver import HTTPServer
+from tornado.options import options, define
+import json
+from queue import Queue
+from urllib.request import urlopen
+from Crypto.Cipher import AES
+from binascii import b2a_hex, a2b_hex
+from base64 import b64decode
+import re
+import pymongo
+import traceback
+
+
+import time
+from multiprocessing import Pool
+from multiprocessing.dummy import Pool as ThreadPool
+import builtins
+import os
+import tushare
+from itertools import zip_longest
+from queue import Queue
+import pandas as pd
+import sys
+import datetime
+from goto import with_goto
+import logging
+from apscheduler.schedulers.blocking import BlockingScheduler
+from retry import retry
+
+sched = BlockingScheduler()
+conn = pymongo.MongoClient()
+db = conn.server
+
+chunk_list = lambda a_list, n: zip_longest(*[iter(a_list)]*n)
+all_stocks = sorted(tushare.get_stock_basics().index.tolist())
+
+
+
+define("port",default=443,help="跑在443",type=int)
+
+
+def unionId(m):
+    '''
+    @获取客户的unionId
+    '''
+    wxspAppid = "wxe42429b73e0dc401"
+    wxspSecret = "597083cbe2f0852aad632ed24186a1b8"
+    code = m["code"]
+    iv = b64decode(m["iv"])
+    encryptedData = b64decode(m["encryptedData"]) 
+    grant_type = "authorization_code"
+    params = "appid=" + wxspAppid + "&secret=" + wxspSecret + "&js_code=" + code + "&grant_type=" + grant_type
+    url = "https://api.weixin.qq.com/sns/jscode2session?" + params
+    sr = urlopen(url).read()
+    sr = json.loads(str(sr,"utf-8"))
+    session_key = b64decode(sr["session_key"])
+    openid = sr["openid"]
+    aes = AES.new(session_key, AES.MODE_CBC, iv)
+    r = str(aes.decrypt(encryptedData),"utf-8")
+    r = re.match("{.+}",r).group()
+    r = json.loads(r)
+    unionId = r["unionId"]
+    return unionId
+
+class cloud(tornado.websocket.WebSocketHandler):
+    """
+    @云端作为信息路由
+    @信息格式:{"from_id":发送端id,"from_group":发送端组,"to_id":接收端id,"to_group":接受端组,"msg":信息}
+    @组可以分为: client, server 
+    @client由unionId区分
+    @server由1,2,3,...区分
+    @目前规定:1发送数据,2接受请求
+    """
+
+    user = dict()
+    def route(self,data):
+        print("...",data["to_id"])
+        try:
+            to_id = data["to_id"]
+            if to_id == 0:
+                self.login(data)
+            elif to_id == 2: # 登记user数据库 
+                req = data["msg"]
+                exec(req)
+            elif to_id == -1: # 请求自选股
+                req = data
+                print(cloud.user)
+                def get_market(code_list_str):
+                    url = "http://hq.sinajs.cn/list={codes}".format(codes = code_list_str)
+                    hq = urlopen(url).read().decode('gbk')
+                    return hq
+
+                user = db.user.find_one({'unionId':req["from_id"]},{"unionId":1,"zxg":1})
+                data = "" 
+                stocks = list(map(lambda x: "sh"+x if x[0]=="6" else "sz"+x, all_stocks))
+                stocks = list(chunk_list(stocks, 100))
+                stocks = list(map(lambda x: [j for j in x if j != None], stocks))
+                stocks = list(map(lambda x: ",".join(x), stocks))
+                with ThreadPool(30) as pool:
+                    return_list = pool.map(get_market,stocks)
+                    pool.close()
+                    pool.join()
+                for i in return_list:
+                    data = data + str(i)
+                data = data.split(";")
+                market = dict()
+                for i in data:
+                    code = re.search('hq_str_\w{2}(\d{6})',i)
+                    value = re.search('="(.+),00"',i)
+                    if not (code and value):
+                       continue 
+                    code = code.group(1)
+                    value = value.group(1).split(',')
+                    market.update({code:value})
+                msg = {k:v for k,v in market.items() if k in user["zxg"]}
+                data = {"from_id":-1,"from_group":"server","to_id":req["from_id"],"to_group":"client","msg":msg, "func":"send_zxg"} 
+                cloud.user[req["from_id"]].write_message(json.dumps(data))
+            elif to_id == -2: # 请求分时图
+                req = data
+                code = req['msg']
+                msg = db.market.find_one({'code':code},{"code":1,"market":1})
+                msg = {msg["code"]:msg["market"]}
+                data = {"from_id":-2,"from_group":"server","to_id":req["from_id"],"to_group":
+                "client","msg":msg,"func":"send_ts"}
+                cloud.user[req["from_id"]].write_message(json.dumps(data))
+            elif to_id == -3: # 请求日线图
+                req = data
+                code = req['msg']
+                msg = db.kl.find_one({'code':code},{"code":1,"kl":1})
+                msg = {msg["code"]:msg["kl"]}
+                data = {"from_id":-3,"from_group":"server","to_id":req["from_id"],"to_group":
+                "client","msg":msg,"func":"send_kl"}
+                cloud.user[req["from_id"]].write_message(json.dumps(data))
+        except Exception as e:
+            with open('err_log','a') as f:
+                print(e, file=f)
+            traceback.print_exc()
+
+    def login(self,data):
+        try:
+            if data["from_id"] == "None":
+                unionID = unionId(data["msg"]) 
+                cloud.user.update({unionID:self})
+                data = {"from_id":0,"from_group":"server","to_id":unionID,"to_group":"client","msg":unionID,"func":"login"}
+                self.write_message(json.dumps(data))
+            else:
+                cloud.user.update({data["from_id"]:self})
+            print(cloud.user)
+        except:
+            traceback.print_exc()
+
+    def open(self):
+        pass
+
+    def on_message(self,data):
+        data = json.loads(data)
+        self.route(data)
+
+    def on_close(self):
+        _id = {v:k for k,v in cloud.user.items()}[self]
+        cloud.user.pop(_id)
+        print("{Id} is closed".format(Id=_id))
+
+    def check_origin(self,origin):
+        return True
+
+
+def main():
+    print("tornado start.")
+    app = tornado.web.Application([
+        (r'/',cloud),
+        ],
+        debug = False)
+    server = HTTPServer(app,ssl_options={"certfile":"1_luozhiming.club_bundle.crt","keyfile":"2_luozhiming.club.key"})
+    server.bind(options.port)
+    server.start(0)
+    tornado.ioloop.IOLoop.instance().start()
+  
+
+if __name__ == "__main__":
+    main()

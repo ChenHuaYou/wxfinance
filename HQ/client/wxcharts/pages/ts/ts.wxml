@@ -8,6 +8,7 @@
             <text>股票：{{stock}} - {{code}}</text>
             <text>时间：{{time}}</text>
             <text>昨收：{{yc}}</text>
+            <text>现价:{{now_price}}</text>
         </view>
         <view class="canvas-wrap">
             <canvas canvas-id="time-sharing" class="stage" style="width: 100%; height: 200px">

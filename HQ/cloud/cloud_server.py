@@ -57,12 +57,6 @@ class cloud_route(tornado.websocket.WebSocketHandler):
         try:
             if data["to_id"] == 0:
                 self.login(data)
-            elif data["to_id"] == "all":
-                for k,v in user.items():
-                    if k not in [2,0,-1,-2,-3,-4,-5]:
-                        v.write_message(data)
-            elif data["to_id"] == 2:
-                user[2].write_message(data)
             else:
                 user[data["to_id"]].write_message(data)
         except:

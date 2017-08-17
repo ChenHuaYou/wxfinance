@@ -8,7 +8,7 @@ var axis = require('./axis-t')();
 module.exports = function (canvasId) {
     return {
         name: '',
-        unit: 240,
+        unit: 500,
         canvasId: canvasId,
         ctx: null,
         canvasWidth: 0,

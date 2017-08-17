@@ -39,17 +39,53 @@ def send_ts_on_message(ws,data):
     code = req['msg']
     msg = db.market.find_one({'code':code},{"code":1,"market":1})
     msg = {msg["code"]:msg["market"]}
-    print(msg)
     data = {"from_id":-2,"from_group":"server","to_id":req["from_id"],"to_group":
     "client","msg":msg,"func":"send_ts"}
     ws.send(json.dumps(data))
+
+def send_zxg_on_message(ws,data):
+    req = json.loads(data)
+    def get_market(code_list_str):
+        url = "http://hq.sinajs.cn/list={codes}".format(codes = code_list_str)
+        hq = urlopen(url).read().decode('gbk')
+        return hq
+
+    try:
+        user = db.user.find_one({'unionId':req["from_id"]},{"unionId":1,"zxg":1})
+        data = "" 
+        stocks = list(map(lambda x: "sh"+x if x[0]=="6" else "sz"+x, all_stocks))
+        stocks = list(chunk_list(stocks, 100))
+        stocks = list(map(lambda x: [j for j in x if j != None], stocks))
+        stocks = list(map(lambda x: ",".join(x), stocks))
+        with ThreadPool(30) as pool:
+            return_list = pool.map(get_market,stocks)
+            pool.close()
+            pool.join()
+        for i in return_list:
+            data = data + str(i)
+        data = data.split(";")
+        market = dict()
+        for i in data:
+            code = re.search('hq_str_\w{2}(\d{6})',i)
+            value = re.search('="(.+),00"',i)
+            if not (code and value):
+               continue 
+            code = code.group(1)
+            value = value.group(1).split(',')
+            market.update({code:value})
+        msg = {k:v for k,v in market.items() if k in user["zxg"]}
+        data = {"from_id":-1,"from_group":"server","to_id":req["from_id"],"to_group":"client","msg":msg, "func":"send_zxg"} 
+        ws.send(json.dumps(data))
+    except Exception as e:
+        with open('send_zxg_err','a') as f:
+            print(e, file=f)
+
 
 def send_kl_on_message(ws,data):
     req = json.loads(data)
     code = req['msg']
     msg = db.kl.find_one({'code':code},{"code":1,"kl":1})
     msg = {msg["code"]:msg["kl"]}
-    print(msg)
     data = {"from_id":-3,"from_group":"server","to_id":req["from_id"],"to_group":
     "client","msg":msg,"func":"send_kl"}
     ws.send(json.dumps(data))
@@ -70,7 +106,6 @@ def send_zxg_on_open(ws):
     data = {"from_id":-1,"from_group":"server","to_id":0,"to_group":
     "server","msg":"","func":"send_zxg_on_open"}
     ws.send(json.dumps(data))
-    send_zxg(ws)
 
 def send_ts_on_open(ws):
     print("### send ts opened ###")
@@ -89,7 +124,6 @@ def send_market_on_open(ws):
     data = {"from_id":-4,"from_group":"server","to_id":0,"to_group":
     "server","msg":"","func":"send_market_on_open"}
     ws.send(json.dumps(data))
-    send_market(ws)
 
 
 def recv_on_open(ws):
@@ -99,46 +133,6 @@ def recv_on_open(ws):
     ws.send(json.dumps(data))
 
 
-
-#这里发送自选股到微信端
-@with_goto
-def send_zxg(ws):
-    label .begin
-    def get_market(code_list_str):
-        url = "http://hq.sinajs.cn/list={codes}".format(codes = code_list_str)
-        hq = urlopen(url).read().decode('gbk')
-        return hq
-
-    while True:
-        try:
-            curs = db.user.find({},{"unionId":1,"zxg":1})
-            data = "" 
-            stocks = list(map(lambda x: "sh"+x if x[0]=="6" else "sz"+x, all_stocks))
-            stocks = list(chunk_list(stocks, 100))
-            stocks = list(map(lambda x: [j for j in x if j != None], stocks))
-            stocks = list(map(lambda x: ",".join(x), stocks))
-            with ThreadPool(30) as pool:
-                return_list = pool.map(get_market,stocks)
-                pool.close()
-                pool.join()
-            for i in return_list:
-                data = data + str(i)
-            data = data.split(";")
-            market = dict()
-            for i in data:
-                code = re.search('hq_str_\w{2}(\d{6})',i)
-                value = re.search('="(.+),00"',i)
-                if not (code and value):
-                   continue 
-                code = code.group(1)
-                value = value.group(1).split(',')
-                market.update({code:value})
-            for j in curs:
-                msg = {k:v for k,v in market.items() if k in j["zxg"]}
-                data = {"from_id":-1,"from_group":"server","to_id":j["unionId"],"to_group":"client","msg":msg, "func":"send_zxg"} 
-                ws.send(json.dumps(data))
-        except:
-            goto .begin
 
 #这里不停的广播实时价格行情
 @with_goto
@@ -227,11 +221,12 @@ def get_sina_ts():
             value = value.group(1).split(',')
             db.market.update({'code':code},{'$setOnInsert':{'code':code},'$addToSet':{'market':value}},upsert=True)
 
+route = "wss://luozhiming.club/"
 
 def server_send_zxg():
     websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://luozhiming.club/",
-                                on_message = send_on_message,
+    ws = websocket.WebSocketApp(route,
+                                on_message = send_zxg_on_message,
                                 on_error = on_error,
                                 on_close = on_close,
                                 on_open = send_zxg_on_open
@@ -240,7 +235,7 @@ def server_send_zxg():
 
 def server_send_market():
     websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://luozhiming.club/",
+    ws = websocket.WebSocketApp(route,
                                 on_message = send_on_message,
                                 on_error = on_error,
                                 on_close = on_close,
@@ -251,7 +246,7 @@ def server_send_market():
 
 def server_send_ts():
     websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://luozhiming.club/",
+    ws = websocket.WebSocketApp(route,
                                 on_message = send_ts_on_message,
                                 on_error = on_error,
                                 on_close = on_close,
@@ -262,7 +257,7 @@ def server_send_ts():
 
 def server_send_kl():
     websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://luozhiming.club/",
+    ws = websocket.WebSocketApp(route,
                                 on_message = send_kl_on_message,
                                 on_error = on_error,
                                 on_close = on_close,
@@ -274,7 +269,7 @@ def server_send_kl():
 
 def server_recv():
     websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://luozhiming.club/",
+    ws = websocket.WebSocketApp(route,
                                 on_message = recv_on_message,
                                 on_error = on_error,
                                 on_close = on_close,
@@ -295,7 +290,7 @@ def main():
         p.apply_async(server_send_zxg,())
         p.apply_async(server_send_ts,())
         p.apply_async(server_send_kl,())
-        p.apply_async(server_send_market,())
+        #p.apply_async(server_send_market,())
         p.daemon = True
         p.close()
         p.join()

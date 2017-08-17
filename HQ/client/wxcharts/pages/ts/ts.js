@@ -4,7 +4,7 @@
 
 var app = getApp();
 var storage = require('../../utils/storage');
-var ts = require('../../utils/wxChart/time-sharing');
+var TS = require('../../utils/wxChart/time-sharing');
 var axisShow = require('../../utils/wxChart/axis-show');
 var ts1, ts2;     //分时
 var tsd51, tsd52; //五日
@@ -12,8 +12,8 @@ var tsAxisShow;   //分时手势坐标
 var getOptionTimeSharing1 = function (type, width) {
   return {
     name: type || 'time-sharing',
-    width: width || 'auto',
-    height: 200,
+    width: 'auto',
+    height: '200',
     axis: {
       row: 4,
       col: 4,
@@ -105,6 +105,7 @@ Page({
     code: '',
     time: '',
     yc: '',
+    now_price: '',
     dataIndex: 0,
     ts1RenderTime: 0,
     ts2RenderTime: 0,
@@ -113,45 +114,63 @@ Page({
     isShowAxis: false
   },
   onReady: function () {
-    this.interval = setInterval(this.fresh_market);
+    this.interval = setInterval(this.fresh_market,1000);
   },
   fresh_market: function () {
     var that = this;
     var code = that.data.code;
     var ts = app.Data.ts;
-    if (ts != null) {
+    var unionId = app.Data.unionId;
+    var req = code;
+    console.log(ts[code].length);
+    wx.sendSocketMessage({
+      data: JSON.stringify({ "from_id": unionId, "from_group": "client", "to_id": -2, "to_group": "server", "msg": req }),
+      success: function () { console.log("请求分时图"); }
+    });
+    try {
       ts = ts[code];
-      console.log(ts);
-      var market = app.Data.zxg[code];
       var mdata;
       var price = new Array();
-      for (var i = 0; i < ts.length; i++) {
-        console.log(ts[i]);
-        var p = '{date} {time},{price},{vol},{avg_price},0'.format({ 'date': market[30], 'time': ts[i][31], 'price': ts[i][3], 'vol': ts[i][9], 'avg_price': ts[i][3] });
+      var L = ts.length;
+      var avg = 0;
+      var sum = 0;
+      var j = 0;
+      for (var i = 0; i < L; i++) {
+        var s_now = (ts[i][30] + ' ' + ts[i][31]).replace(/-/g, "/");
+        var s_open = (ts[i][30] + ' ' + '09:30:00').replace(/-/g, "/");
+        var date_now = new Date(s_now);
+        var date_open = new Date(s_open);
+        if (date_now < date_open) continue;
+        j ++;
+        sum =  parseFloat(ts[i][3]) + sum;
+        avg = String(sum / j);
+        console.log("avg",avg);
+        var p = '{date} {time},{price},{vol},{avg_price},0'.format({ 'date': ts[L-1][30], 'time': ts[i][31], 'price': ts[i][3], 'vol': ts[i][9], 'avg_price': avg});
         price.push(p);
-        console.log(p);
       }
-      mdata = { 'open': market[1], 'yc': market[2], 'price': price, 'highest': market[4], 'lowest': market[5] };
+      mdata = { 'open': ts[L-1][1], 'yc': ts[L-1][2], 'price': price, 'highest': ts[L-1][4], 'lowest': ts[L-1][5]};
       var tsData = storage.getTsData(mdata);
       this.setData({
         dataIndex: 0,
-        time: '{date} {time}'.format({ 'date': market[30], 'time': market[31] }),
+        time: '{date} {time}'.format({ 'date': ts[L-1][30], 'time': ts[L-1][31]}),
         ts: tsData,
-        yc: market[2]
+        yc: ts[L-1][2],
+        now_price: ts[L-1][3],
       });
-      this.tabChart({
+      that.tabChart({
         target: {
           dataset: {
             type: 'ts'
           }
         }
       });
-      clearInterval(that.interval);
-    }else{
-      console.log(ts);
+      //clearInterval(that.interval);
+    }catch(err){
+      console.log(err);
     }
 
   },
+
   onLoad: function (options) {
     this.setData({
       stock: options.stock,
@@ -184,25 +203,25 @@ Page({
     })
   },
   tabChart: function (e) {
-    this.clearTimer();
+    //this.clearTimer();
     var type = e.target.dataset.type;
     var data = this.data[type];
     this.setData({
       tabName: type,
     });
-    this['init-' + type]();
+    this['init-ts']();
   },
   'init-ts': function () {
     var data = this.data.ts;
-    ts1 = ts('time-sharing').init(getOptionTimeSharing1());
+    ts1 = TS('time-sharing').init(getOptionTimeSharing1());
     this.renderTs1(data);
-    ts2 = ts('time-sharing-b').init(getOptionTimeSharing2());
+    ts2 = TS('time-sharing-b').init(getOptionTimeSharing2());
     this.renderTs2(data);
     tsAxisShow = axisShow('time-sharing-axis', {
       //todo: 配置项
       type: 'ts',
       height: 280,
-      width: 'auto',
+      width: 1440,
       maxY: 100,
       minY: 0
     });
@@ -235,12 +254,14 @@ Page({
     this.clearTimer();
 
     var data = storage.getTsData();
+    console.log("fuck me !!");
     this.renderTs1(data);
     this.renderTs2(data);
   },
   dynamic: function () {
     var that = this;
     var data = storage.getTsData();
+    console.log("fuck you !!")
     var origin = data.data.slice(0);
     var index = 0;
     var times = [50, 100, 200, 500, 1000];

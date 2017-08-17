@@ -46,6 +46,11 @@ Page({
   },
   fresh_market: function () {
     var that = this;
+    var unionId = app.Data.unionId;
+    wx.sendSocketMessage({
+      data: JSON.stringify({ "from_id": unionId, "from_group": "client", "to_id": -1, "to_group": "server", "msg": "" }),
+      success: function () { console.log("请求自选股"); }
+    });
     var gmarket = app.Data.ts;
     var zxg = app.Data.zxg;
     var market = new Array();
