@@ -1,0 +1,38 @@
+{
+  "pages": [
+    "pages/zxts/zxts",
+    "pages/zsdz/zsdz",
+    "pages/ztbb/ztbb"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "首页",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#a9b7b7",
+    "selectedColor": "#11cd6e",
+    "borderStyle": "black",
+    "list": [
+      {
+        "selectedIconPath": "images/zzdz.png",
+        "iconPath": "images/zzdz.png",
+        "pagePath": "pages/zsdz/zsdz",
+        "text": "专属定制"
+      },
+      {
+        "selectedIconPath": "images/zxts.png",
+        "iconPath": "images/zxts.png",
+        "pagePath": "pages/zxts/zxts",
+        "text": "自选提示"
+      },
+      {
+        "selectedIconPath": "images/ztbb.png",
+        "iconPath": "images/ztbb.png",
+        "pagePath": "pages/ztbb/ztbb",
+        "text": "专题报表"
+      }
+    ]
+  }
+}
