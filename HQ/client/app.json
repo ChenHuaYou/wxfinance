@@ -1,10 +1,9 @@
 {
   "pages": [
-    "pages/index/ZXG",
+    "pages/zxg/zxg",
     "pages/ts/ts",
     "pages/kl/kl",
-	"pages/sr/sr",
-    "pages/setting/setting"
+	"pages/sr/sr"
   ],
   "window": {
     "navigationBarBackgroundColor": "#262834",

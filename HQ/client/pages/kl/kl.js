@@ -128,7 +128,7 @@ Page({
   },
   back: function () {
     wx.redirectTo({
-      url: '../index/ZXG',
+      url: '../zxg/zxg',
     })
   },
   tabChart: function (e) {
