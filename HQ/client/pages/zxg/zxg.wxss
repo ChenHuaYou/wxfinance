@@ -1,4 +1,4 @@
-/* pages/index/ZXG.wxss */
+/* pages/index/zxg.wxss */
 @import "/wxSearch/wxSearch.wxss";
 .table{
   border-style:solid;

@@ -1,38 +1,37 @@
 {
   "pages": [
-    "pages/zxts/zxts",
-    "pages/zsdz/zsdz",
-    "pages/ztbb/ztbb"
+    "pages/douban/douban",
+    "pages/ggts/douban",
+    "pages/zsdz/douban",
+    "pages/detail/detail"
   ],
+  "tabBar": {
+    "borderStyle": "white",
+    "list": [
+      {
+        "text": "专属定制",
+        "pagePath": "pages/zsdz/douban",
+        "iconPath": "images/store.png",
+        "selectedIconPath": "images/store-selected.png"
+      },
+      {
+        "text": "个股提示",
+        "pagePath": "pages/ggts/douban",
+        "iconPath": "images/store.png",
+        "selectedIconPath": "images/store-selected.png"
+      },
+      {
+        "text": "报表定制",
+        "pagePath": "pages/douban/douban",
+        "iconPath": "images/store.png",
+        "selectedIconPath": "images/store-selected.png"
+      }
+    ]
+  },
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "首页",
+    "navigationBarTitleText": "TinyMonit",
     "navigationBarTextStyle": "black"
-  },
-  "tabBar": {
-    "color": "#a9b7b7",
-    "selectedColor": "#11cd6e",
-    "borderStyle": "black",
-    "list": [
-      {
-        "selectedIconPath": "images/zzdz.png",
-        "iconPath": "images/zzdz.png",
-        "pagePath": "pages/zsdz/zsdz",
-        "text": "专属定制"
-      },
-      {
-        "selectedIconPath": "images/zxts.png",
-        "iconPath": "images/zxts.png",
-        "pagePath": "pages/zxts/zxts",
-        "text": "自选提示"
-      },
-      {
-        "selectedIconPath": "images/ztbb.png",
-        "iconPath": "images/ztbb.png",
-        "pagePath": "pages/ztbb/ztbb",
-        "text": "专题报表"
-      }
-    ]
   }
 }

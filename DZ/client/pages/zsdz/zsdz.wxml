@@ -1,7 +1,0 @@
-<scroll-view scroll-x="true" style=" white-space: nowrap; display: flex">
-  <!--  display: inline-block-->
-  <view style="background: red; width: 200px; height: 100px; display: inline-block"></view>
-  <view style="background: green; width: 200px; height: 100px; display: inline-block"></view>
-  <view style="background: blue; width: 200px; height: 100px; display: inline-block"></view>
-  <view style="background: yellow; width: 200px; height: 100px; display: inline-block"></view>
-</scroll-view>

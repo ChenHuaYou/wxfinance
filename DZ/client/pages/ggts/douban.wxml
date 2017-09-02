@@ -1,0 +1,83 @@
+<view class="menu">
+  <scroll-view scroll-x="true" class="top-nav">
+    <view bindtap="toHot" class="top-btn {{hot}}">到价提示</view>
+    <view bindtap="toFilm" class="top-btn {{film}}">公司公告</view>
+    <view bindtap="toReadBook" class="top-btn {{book}}">开发中</view>
+    <view bindtap="toTelv" class="top-btn {{telv}}">开发中</view>
+    <view bindtap="toActive" class="top-btn {{active}}">开发中</view>
+    <view bindtap="toMusic" class="top-btn {{music}}">开发中</view>
+    <view bindtap="toOther" class="top-btn {{other}}">其他</view>
+    <view bindtap="toOther1" class="top-btn {{other1}}">其他1</view>
+  </scroll-view>
+</view>
+
+<scroll-view scroll-y="true" class="content">
+  <text>到价提示清单</text>
+  <view>
+    <view style="width:100%;">
+      <view class="wa-grid text-center">
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+        <view class="wa-grid-33 border-basic">three</view>
+
+
+      </view>
+    </view>
+  </view>
+</scroll-view>
+
+<view class="button">
+  <button type="primary" class="tag" size="mini">提示方式</button>
+  <button type="primary" class="tag" size="mini">定制范围</button>
+</view>

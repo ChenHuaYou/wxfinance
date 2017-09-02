@@ -31,17 +31,29 @@ from goto import with_goto
 import logging
 from apscheduler.schedulers.blocking import BlockingScheduler
 from retry import retry
+from pypinyin import pinyin
+import pypinyin
 
 sched = BlockingScheduler()
 conn = pymongo.MongoClient()
 db = conn.server
 
 chunk_list = lambda a_list, n: zip_longest(*[iter(a_list)]*n)
-all_stocks = sorted(tushare.get_stock_basics().index.tolist())
+stock_basics = tushare.get_stock_basics()
+stock_basics = stock_basics.reset_index()
+stock_basics = stock_basics.drop_duplicates('code')
+stock_basics = stock_basics.sort_values('code')
+stock_basics['pinyin'] = stock_basics['name'].map(lambda x: ''.join([x[0] for x in pinyin(x, style=pypinyin.FIRST_LETTER)]))
+code_name_pinyin = stock_basics[['code','name','pinyin']].values.tolist()
 
 
 
-define("port",default=443,help="跑在443",type=int)
+
+all_stocks = stock_basics['code'] 
+
+
+
+define("port",default=80,help="跑在80",type=int)
 
 
 def unionId(m):
@@ -125,17 +137,22 @@ class cloud(tornado.websocket.WebSocketHandler):
                 code = req['msg']
                 msg = db.market.find_one({'code':code},{"code":1,"market":1})
                 msg = {msg["code"]:msg["market"]}
-                data = {"from_id":-2,"from_group":"server","to_id":req["from_id"],"to_group":
-                "client","msg":msg,"func":"send_ts"}
+                data = {"from_id":-2,"from_group":"server","to_id":req["from_id"],"to_group":"client","msg":msg,"func":"send_ts"}
                 cloud.user[req["from_id"]].write_message(json.dumps(data))
             elif to_id == -3: # 请求日线图
                 req = data
                 code = req['msg']
                 msg = db.kl.find_one({'code':code},{"code":1,"kl":1})
                 msg = {msg["code"]:msg["kl"]}
-                data = {"from_id":-3,"from_group":"server","to_id":req["from_id"],"to_group":
-                "client","msg":msg,"func":"send_kl"}
+                data = {"from_id":-3,"from_group":"server","to_id":req["from_id"],"to_group":"client","msg":msg,"func":"send_kl"}
                 cloud.user[req["from_id"]].write_message(json.dumps(data))
+            elif to_id == -5: # 请求股票列表
+                req = data
+                msg = code_name_pinyin
+                data = {"from_id":-5,"from_group":"server","to_id":req["from_id"],"to_group":"client","msg":msg,"func":"send_kl"}
+                cloud.user[req["from_id"]].write_message(json.dumps(data))
+
+
         except Exception as e:
             with open('err_log','a') as f:
                 print(e, file=f)
@@ -176,7 +193,7 @@ def main():
         (r'/',cloud),
         ],
         debug = False)
-    server = HTTPServer(app,ssl_options={"certfile":"1_luozhiming.club_bundle.crt","keyfile":"2_luozhiming.club.key"})
+    server = HTTPServer(app)
     server.bind(options.port)
     server.start(0)
     tornado.ioloop.IOLoop.instance().start()

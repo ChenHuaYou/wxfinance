@@ -1,0 +1,98 @@
+#! /usr/bin/python3
+
+import websocket
+import time
+import json
+from multiprocessing import Pool
+from multiprocessing.dummy import Pool as ThreadPool
+import builtins
+import pymongo 
+import os
+import tushare
+from urllib.request import urlopen
+from itertools import zip_longest
+from queue import Queue
+import pandas as pd
+import re
+import sys
+import datetime
+from goto import with_goto
+import logging
+from apscheduler.schedulers.blocking import BlockingScheduler
+import traceback
+from retry import retry
+
+sched = BlockingScheduler()
+conn = pymongo.MongoClient()
+db = conn.server
+
+chunk_list = lambda a_list, n: zip_longest(*[iter(a_list)]*n)
+all_stocks = sorted(tushare.get_stock_basics().index.tolist())
+
+
+
+
+#这里每天准时5点正读取收盘价序列
+@with_goto
+def get_tushare_kl():
+    label .begin
+    print("...","send kl")
+    try:
+        for code in all_stocks:
+            DF = tushare.get_hist_data(code)
+            if DF is not None and len(DF):
+                DF = DF.reset_index()
+                value = DF.values.tolist()
+                db.kl.update({'code':code},{'$setOnInsert':{'code':code},'$set':{'kl':value}},upsert=True)
+    except Exception as e:
+        goto .begin
+
+#这里马不停蹄的读取新浪行情保存到数据库
+def get_sina_ts():
+    def get_market(code_list_str):
+        url = "http://hq.sinajs.cn/list={codes}".format(codes = code_list_str)
+        hq = urlopen(url).read().decode('gbk')
+        return hq
+
+    db.market.drop()    
+    while True:
+        print("...send ts")
+        T = datetime.datetime.now()
+        if T.hour == 15:
+            return
+
+        st = time.time()
+        data = "" 
+        stocks = list(map(lambda x: "sh"+x if x[0]=="6" else "sz"+x, all_stocks))
+        stocks = list(chunk_list(stocks, 100))
+        stocks = list(map(lambda x: [j for j in x if j != None], stocks))
+        stocks = list(map(lambda x: ",".join(x), stocks))
+        with ThreadPool(30) as pool:
+            return_list = pool.map(get_market,stocks)
+            pool.close()
+            pool.join()
+        for i in return_list:
+            data = data + str(i)
+        data = data.split(";")
+
+        for i in data:
+            code = re.search('hq_str_\w{2}(\d{6})',i)
+            value = re.search('="(.+),00"',i)
+            if not (code and value):
+                continue
+            code = code.group(1)
+            value = value.group(1).split(',')
+            db.market.update({'code':code},{'$setOnInsert':{'code':code},'$addToSet':{'market':value}},upsert=True)
+
+
+def get_data():
+    sched.add_job(get_tushare_kl,'cron',day_of_week='mon-fri',hour='5')
+    sched.add_job(get_sina_ts,'cron',day_of_week='mon-fri',hour='9',minute='15')
+    sched.start()
+
+
+def main():
+    get_data()
+
+if __name__ == "__main__":
+    main()
