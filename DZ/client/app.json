@@ -3,7 +3,9 @@
     "pages/douban/douban",
     "pages/ggts/douban",
     "pages/zsdz/douban",
-    "pages/detail/detail"
+    "pages/detail/detail",
+    "pages/ggts/add_or_delete_stocks",
+    "pages/ggts/settings"
   ],
   "tabBar": {
     "borderStyle": "white",

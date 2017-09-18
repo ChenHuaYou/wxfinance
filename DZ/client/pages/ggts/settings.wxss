@@ -1,0 +1,12 @@
+/* pages/ggts/settings.wxss */
+
+.button{
+  position: fixed;
+  bottom: 0px;
+  width: 100%;
+  display:flex;
+  justify-content: center;
+  background: #fff;
+  border-bottom:#eee solid 1px;
+  z-index: 100000
+}

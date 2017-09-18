@@ -78,6 +78,6 @@
 </scroll-view>
 
 <view class="button">
-  <button type="primary" class="tag" size="mini">提示方式</button>
-  <button type="primary" class="tag" size="mini">定制范围</button>
+  <button type="primary" class="tag" size="mini" bindtap="settings">提示设置</button>
+  <button type="primary" class="tag" size="mini" bindtap="add_or_del">添加/删除</button>
 </view>

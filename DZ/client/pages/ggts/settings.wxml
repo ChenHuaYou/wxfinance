@@ -1,0 +1,33 @@
+<view>
+  <view class="space">接收方式</view>
+  <view class="wa-input-item">
+    <text class="wa-input-label">微信:</text>
+    <input class="wa-input" value="" />
+    <text class="wa-input-label">邮箱:</text>
+    <input class="wa-input" value="" />
+  </view>
+  <view class="space">循环提示设置</view>
+  <view class="wa-input-item">
+    <text class="wa-input-label">提醒间隔</text>
+    <input class="wa-input" value="" />
+  </view>
+  <view class="space">涨跌幅设置</view>
+  <view class="wa-input-item">
+    <text class="wa-input-label">涨幅:超过</text>
+    <input class="wa-input" value="" />
+    <text class="wa-input-label">跌幅:超过</text>
+    <input class="wa-input" value="" />
+  </view>
+</view>
+
+<view class="button">
+  <button type="primary" class="tag" size="mini" bindtap="settings">取消</button>
+  <button type="primary" class="tag" size="mini" bindtap="add_or_del">确定</button>
+</view>
+
+<view>
+  <text>
+  1、单次提示:股票、指数等行情类价格触发提示,仅适用于盘中实时提示,且每个股票单个提示项目每日最多提示一次.
+  2、循环提示:即每隔一定的时间提示行情最新价,按分钟计算时间间隔不能低于10分钟
+  </text>
+</view>
